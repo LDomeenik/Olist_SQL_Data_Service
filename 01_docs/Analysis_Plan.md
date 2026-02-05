@@ -208,3 +208,4 @@ Raw Data -> Staging -> Data Mart -> Analysis Modules -> Dashboard
 - **Dashboard**
 	- 분석 모듈과 데이터 마트를 기반으로 주요 KPI와 분석 결과를 시각화하여 제공
 	- 대시보드를 통해 비즈니스 현황을 직관적으로 확인하고, 문제 구간을 빠르게 파악
+
