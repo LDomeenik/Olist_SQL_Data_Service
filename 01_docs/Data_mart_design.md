@@ -391,7 +391,6 @@ erDiagram
     string  customer_id FK
     date    order_purchase_date FK
     string  customer_zip_code_prefix FK
-    string  seller_zip_code_prefix FK
 
     %% Status / Timestamps
     string  order_status
@@ -442,7 +441,6 @@ erDiagram
   %% Relationships (Star Schema)
   DIM_DATE       ||--o{ FACT_ORDERS : "order_purchase_date"
   DIM_CUSTOMER   ||--o{ FACT_ORDERS : "customer_id"
-  DIM_GEOLOCATION||--o{ FACT_ORDERS : "customer_zip_code_prefix (customer geo)"
-  DIM_GEOLOCATION||--o{ FACT_ORDERS : "seller_zip_code_prefix (seller geo)"
+  DIM_GEOLOCATION||--o{ FACT_ORDERS : "customer_zip_code_prefix"
 
 ```
