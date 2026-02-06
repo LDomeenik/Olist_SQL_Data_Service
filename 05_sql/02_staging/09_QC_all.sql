@@ -45,16 +45,16 @@ SELECT  schema_name
 */
 
 -- Raw VS Stg row count
--- entity			raw_cnt	 stg_cnt	diff
+-- entity			raw_cnt	   stg_cnt	    diff
 -- =================================================
--- orders			 99441	  99441	     0
--- customers		 99441	  99441		 0
--- order_items		 112650	  112650	 0
--- products			 32951	  32951	  	 0
--- sellers			 3095	  3095		 0
--- order_payments	 103886	  103886	 0
--- order_reviews	 99224	  99224		 0
--- geolocation		 1000163  19015		-981148
+-- orders			 99,441	    99,441	     0
+-- customers		 99,441	    99,441		 0
+-- order_items		 112,650    112,650	 	 0
+-- products			 32,951	    32,951	  	 0
+-- sellers			 3,095	    3,095		 0
+-- order_payments	 103,886	103,886		 0
+-- order_reviews	 99,224	    99,224		 0
+-- geolocation		 1,000,163  19,015		-981,148
 SELECT  'orders' AS entity
 		,(SELECT COUNT(*) FROM olist_raw.orders) AS raw_cnt
 		,(SELECT COUNT(*) FROM olist_stg.stg_orders) AS stg_cnt
@@ -424,6 +424,7 @@ SELECT  'stg_order_reviews'
 -- table_name				flag_col				total_cnt		null_cnt	invalid_value_cnt	true_rate_pct
 -- ====================================================================================================================
 -- stg_geolocation		is_invalid_latlng_exists	 19015				0				0				0.11
+-- stg_geolocation		is_multi_city				 19015				0				0				2.89
 -- stg_geolocation		is_multi_state				 19015				0				0				0.04
 -- stg_order_payments	is_installments_zero		 103886				0				0				0.00
 -- stg_order_payments	is_payment_value_zero		 103886				0				0				0.01

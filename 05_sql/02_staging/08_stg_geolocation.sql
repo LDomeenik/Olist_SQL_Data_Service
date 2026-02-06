@@ -157,6 +157,28 @@ SELECT  geolocation_zip_code_prefix
     BY  1
 HAVING  COUNT(DISTINCT geolocation_state) > 1;
 
+-- 서로 다른 city에 동일한 zip_prefix: 2개 이상의 city에서 동일한 zip_code_prefix를 사용하는 경우가 550건 존재
+SELECT  geolocation_zip_code_prefix
+		,COUNT(DISTINCT geolocation_city) AS city_cnt
+  FROM  olist_raw.geolocation
+ GROUP
+    BY  1
+HAVING  COUNT(DISTINCT geolocation_city) > 1;
+
+SELECT  city_cnt
+		,COUNT(*) AS zip_cnt
+  FROM  (
+  		SELECT  geolocation_zip_code_prefix
+  				,COUNT(DISTINCT TRIM(UPPER(geolocation_city))) AS city_cnt
+  		  FROM  olist_raw.geolocation
+  		 GROUP
+  		    BY  1
+  		) AS t
+ GROUP
+    BY  1
+ ORDER
+    BY  1;
+
 -- 복수 state인 zip_prefix에 대한 state별 빈도
 SELECT  geolocation_zip_code_prefix
 		,geolocation_state
@@ -268,6 +290,7 @@ SELECT  MIN(LENGTH(TRIM(REPLACE(geolocation_zip_code_prefix, '\r', '')))) AS min
  * 	- zip_prefix 단위로 대표 좌표(lat/lng)를 산출 (브라질 유효 범위 내 최빈값으로 지정)
  * 	- zip_prefix 단위로 대표 city/state를 산출 (zip_prefix 그룹 내 (city, state) 최빈값으로 선정)
  * 	- zip_prefix 단위로 state 분포 집계(state_cnt)
+ * 	- zip_prefix 단위로 city 분포 집계(city_cnt)
  * 	- city와 state를 결합한 geolocation_city_state 파생 컬럼 생성
  * 	- 집계 결과를 기반으로 품질 관리용 플래그 컬럼 생성
  * 		-> is_invalid_latlng_exists: zip_prefix 그룹 내 유효 범위를 벗어난 좌표가 1건 이상 존재할 경우 1
@@ -297,10 +320,12 @@ CREATE TABLE olist_stg.stg_geolocation (
 	mode_cnt					 INT			 NOT NULL,
 	mode_ratio_pct				 DECIMAL(6, 2)   NOT NULL,
 	invalid_latlng_cnt			 INT			 NOT NULL,
+	city_cnt					 TINYINT		 NOT NULL,
 	state_cnt					 TINYINT		 NOT NULL,
 	
 	-- 플래그 컬럼
 	is_invalid_latlng_exists     TINYINT         NOT NULL,
+	is_multi_city				 TINYINT		 NOT NULL,
 	is_multi_state				 TINYINT         NOT NULL,
 	
 	-- PK, Indexes
@@ -324,9 +349,11 @@ INSERT INTO olist_stg.stg_geolocation (
 	mode_cnt,
 	mode_ratio_pct,
 	invalid_latlng_cnt,
+	city_cnt,
 	state_cnt,
 	
 	is_invalid_latlng_exists,
+	is_multi_city,
 	is_multi_state
 )
 WITH base AS (
@@ -346,6 +373,7 @@ agg AS (
 	SELECT  zip_prefix
 			,COUNT(*) AS row_cnt
 			,SUM(CASE WHEN is_valid_latlng = 0 THEN 1 ELSE 0 END) AS invalid_latlng_cnt
+			,COUNT(DISTINCT city_norm) AS city_cnt
 			,COUNT(DISTINCT state_norm) AS state_cnt
 	  FROM  base
 	 GROUP
@@ -403,9 +431,11 @@ SELECT  a.zip_prefix AS geolocation_zip_code_prefix
 		,COALESCE(lm.cnt, 0) AS mode_cnt
 		,ROUND(COALESCE(lm.cnt, 0) / a.row_cnt * 100.0, 2) AS mode_ratio_pct
 		,a.invalid_latlng_cnt
+		,a.city_cnt
 		,a.state_cnt
 		
 		,CASE WHEN a.invalid_latlng_cnt > 0 THEN 1 ELSE 0 END AS is_invalid_latlng_exists
+		,CASE WHEN a.city_cnt > 1 THEN 1 ELSE 0 END AS is_multi_city
 		,CASE WHEN a.state_cnt > 1 THEN 1 ELSE 0 END AS is_multi_state
   FROM  agg AS a
   LEFT
@@ -474,6 +504,12 @@ SELECT  COUNT(*) AS state_len_invalid_cnt
    AND  geolocation_state <> ''
    AND  LENGTH(geolocation_state) <> 2;
 
+-- city_cnt와 대표 city가 일치하지 않는 경우: 0건
+SELECT  COUNT(*) AS inconsistent_city_rep
+  FROM  olist_stg.stg_geolocation
+ WHERE  city_cnt = 1
+   AND  (geolocation_city IS NULL OR geolocation_state = '');
+
 -- state_cnt와 대표 state가 일치하지 않는 경우: 0건
 SELECT  COUNT(*) AS inconsistent_state_rep
   FROM  olist_stg.stg_geolocation
@@ -496,6 +532,12 @@ SELECT  COUNT(*) AS flag_mismatch_invalid_latlng
   FROM  olist_stg.stg_geolocation
  WHERE  (invalid_latlng_cnt > 0 AND is_invalid_latlng_exists <> 1)
     OR  (invalid_latlng_cnt = 0 AND is_invalid_latlng_exists <> 0);
+
+-- is_multi_city 집계값 이상치: 0건
+SELECT  COUNT(*) AS flag_mismatch_multi_city
+  FROM  olist_stg.stg_geolocation
+ WHERE  (city_cnt > 1 AND is_multi_city <> 1)
+   AND  (city_cnt <= 1 AND is_multi_city <> 0);
 
 -- is_multi_state 집계값 이상치: 0건
 SELECT  COUNT(*) AS flag_mismatch_multi_state
