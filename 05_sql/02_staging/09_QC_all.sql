@@ -436,6 +436,7 @@ SELECT  'stg_order_reviews'
 -- stg_orders			is_status_inconsistent		 99441				0				0				0.01
 -- stg_orders			is_carrier_dt_missing		 99441				0				0				0.32
 -- stg_products			is_category_blank			 32951				0				0				1.85
+-- stg_products			is_category_en_unmapped		 32951				0				0				0.04
 -- stg_products			is_weight_zero				 32951				0				0				0.01
 
 

@@ -537,7 +537,7 @@ SELECT  COUNT(*) AS flag_mismatch_invalid_latlng
 SELECT  COUNT(*) AS flag_mismatch_multi_city
   FROM  olist_stg.stg_geolocation
  WHERE  (city_cnt > 1 AND is_multi_city <> 1)
-   AND  (city_cnt <= 1 AND is_multi_city <> 0);
+    OR  (city_cnt <= 1 AND is_multi_city <> 0);
 
 -- is_multi_state 집계값 이상치: 0건
 SELECT  COUNT(*) AS flag_mismatch_multi_state

@@ -7,13 +7,15 @@
  * 	- Source 데이터: olist_raw.products
  *  - 상품(product) 단위의 Staging 테이블 생성
  * 	- 상품 번호(product_id) 기준 조인 안전성 확보 및 분석용 타입 표준화 수행
+ * 	- product_category_name_translation과 조인하여 product_category_name_en 컬럼을 포함
  * 	- 정합성 위반 row에 대하여 플래그 컬럼 생성
  * 	- 
  * Notes:
  * 	- product_id를 PK로 사용하였습니다.
  * 	- 식별자 성격을 지닌 ID 컬럼(product_id)은 NOT NULL을 적용하였습니다.
  * 	- 그 외의 컬럼에 대하여는 NULL을 허용하였습니다. (추후 데이터 확장 고려)
- * 	- product_category_name)에 결측(공백)이 발견되어 플래그 컬럼을 생성하였습니다. (is_category_blank)
+ * 	- product_category_name에 결측(공백)이 발견되어 플래그 컬럼을 생성하였습니다. (is_category_blank)
+ * 	- product_category_name_en 조인 결과가 결측인 경우 그대로 결측으로 
  * 	- product_weight_g = 0인 row 중 이상치가 확인되어 플래그 컬럼을 생성하였습니다. (is_weight_zero)
  * 	- 치수 결측은 삭제 및 보정하지 않고 product_volume_cm3을 조건부 계산하여 NULL로 유지합니다.
  */
@@ -158,16 +160,40 @@ SELECT  COUNT(DISTINCT oi.product_id) AS distinct_product_in_order_items
   JOIN  olist_raw.products AS p
     ON  p.product_id = oi.product_id;
 
+-- product_category_name_translation 데이터 확인
+SELECT  *
+  FROM  olist_raw.product_category_name_translation
+ LIMIT  10;
+
+-- 조인 안정성 확인
+-- translation 키 유일성 확인 -> 동일 product_category_name이 존재하는 경우: 0건
+SELECT  product_category_name
+		,COUNT(*) AS cnt
+  FROM  olist_raw.product_category_name_translation
+ GROUP
+    BY  1
+HAVING  COUNT(*) > 1;
+
+-- 라벨 누락 -> 조인 시 null이 아닌 건수: 32,951건 / null인 건수: 623건
+SELECT  COUNT(*) AS category_not_null_cnt
+		,SUM(t.product_category_name IS NULL) AS unmapped_cnt
+  FROM  olist_raw.products AS p
+  LEFT
+  JOIN  olist_raw.product_category_name_translation AS t
+    ON  NULLIF(LOWER(TRIM(REPLACE(t.product_category_name, '\r', ''))), '') = NULLIF(LOWER(TRIM(REPLACE(p.product_category_name, '\r', ''))), '')
+ WHERE  p.product_category_name IS NOT NULL;
 
 /*
  * stg_products 테이블 ETL:
  * 	- 상품 분류명(product_category_name) 표준화(소문자/공백 제거)
  * 	- 상품 치수 기준 파생 컬럼 생성(product_volume_cm3)
  * 	- 원천 미기재 row(product_category_name이 공백) 기준 플래그 컬럼 생성(is_category_blank)
+ * 	- 조인 시 발생하는 결측 row(product_category_name_en이 공백) 기준 플래그 컬럼 생성(is_category_en_unmapped)
  * 	- 정합성 위반 row(product_weight_g가 0) 기준 플래그 컬럼 생성(is_weight_zero)
  * 
  * Note:
  * 	- 상품 분류명(product_category_name)의 NULL 및 공백(610건)은 NULL로 표준화하였습니다. (추후 DM 단계에서 그룹화할 예정)
+ * 	- 상품 분류명 영문 번역(product_category_name_en)의 NULL 및 공백은 NULL로 표준화하였습니다.
  * 	- 정합성 위반 row를 삭제하지 않고 플래그로 관리함으로써 데이터 손실을 방지하고 추후 분석 단계에서 필터링이 가능하도록 설계하였습니다.
  * 	- 상품 부피(product_volume_cm3)는 정합성이 보장되는 경우에만 조건부 계산이 이루어져야 합니다.
  * 	- 이외 0 값 혹은 NULL 값은 정상적인 값으로 판단하였습니다.
@@ -179,6 +205,7 @@ DROP TABLE IF EXISTS olist_stg.stg_products;
 CREATE TABLE olist_stg.stg_products (
 	product_id				    VARCHAR(50)   NOT NULL,
 	product_category_name		VARCHAR(100)  NULL,
+	product_category_name_en	VARCHAR(100)  NULL,
 	product_name_length			INT			  NULL,
 	product_description_length  INT			  NULL,
 	product_photos_qty			INT			  NULL,
@@ -192,6 +219,7 @@ CREATE TABLE olist_stg.stg_products (
 	
 	-- 플래그 컬럼
 	is_category_blank			TINYINT       NOT NULL,
+	is_category_en_unmapped		TINYINT		  NOT NULL,
 	is_weight_zero				TINYINT		  NOT NULL,
 	
 	-- PK, INDEX
@@ -206,6 +234,7 @@ TRUNCATE TABLE olist_stg.stg_products;
 INSERT INTO olist_stg.stg_products (
 	product_id,
 	product_category_name,
+	product_category_name_en,
 	product_name_length,
 	product_description_length,
 	product_photos_qty,
@@ -217,26 +246,31 @@ INSERT INTO olist_stg.stg_products (
 	product_volume_cm3,
 	
 	is_category_blank,
+	is_category_en_unmapped,
 	is_weight_zero
 )
-SELECT  product_id
-		,product_category_name_norm AS product_category_name
-		,product_name_length
-		,product_description_length
-		,product_photos_qty
-		,product_weight_g
-		,product_length_cm
-		,product_height_cm
-		,product_width_cm
+SELECT  c.product_id
+		,c.product_category_name_norm AS product_category_name
+		,t.product_category_name_english_norm AS product_category_name_en
+		,c.product_name_length
+		,c.product_description_length
+		,c.product_photos_qty
+		,c.product_weight_g
+		,c.product_length_cm
+		,c.product_height_cm
+		,c.product_width_cm
 		
-		,CASE WHEN product_length_cm IS NULL OR product_height_cm IS NULL OR product_width_cm IS NULL THEN NULL
-			  ELSE product_length_cm * product_height_cm * product_width_cm
+		,CASE WHEN c.product_length_cm IS NULL OR c.product_height_cm IS NULL OR c.product_width_cm IS NULL THEN NULL
+			  ELSE c.product_length_cm * c.product_height_cm * c.product_width_cm
 			  END AS product_volume_cm3
 		
-		,CASE WHEN product_category_name_norm IS NULL THEN 1
+		,CASE WHEN c.product_category_name_norm IS NULL THEN 1
 			  ELSE 0
 			  END AS is_category_blank
-		,CASE WHEN product_weight_g = 0 THEN 1
+		,CASE WHEN c.product_category_name_norm IS NOT NULL AND t.product_category_name_norm IS NULL THEN 1
+			  ELSE 0
+			  END AS is_category_en_unmapped
+		,CASE WHEN c.product_weight_g = 0 THEN 1
 		      ELSE 0 END AS is_weight_zero
   FROM  (
   		SELECT  product_id
@@ -249,9 +283,16 @@ SELECT  product_id
 		,product_height_cm
 		,product_width_cm
 		FROM  olist_raw.products
-		) cleaned
- WHERE  product_id IS NOT NULL
-   AND  product_id <> ''; -- PK 명시
+		) c
+  LEFT
+  JOIN  (
+  		SELECT  NULLIF(LOWER(TRIM(REPLACE(product_category_name, '\r', ''))), '') AS product_category_name_norm
+  				,NULLIF(LOWER(TRIM(REPLACE(product_category_name_english, '\r', ''))), '') AS product_category_name_english_norm
+  		  FROM  olist_raw.product_category_name_translation
+  		) AS t
+    ON  t.product_category_name_norm = c.product_category_name_norm
+ WHERE  c.product_id IS NOT NULL
+   AND  c.product_id <> ''; -- PK 명시
 
 
 -- 테이블 검증
@@ -347,8 +388,9 @@ SELECT  SUM(product_volume_cm3 IS NULL) AS volume_null_cnt
 		,MAX(product_volume_cm3) AS volume_max
   FROM  olist_stg.stg_products;
 
--- 정합성 플래그 수 확인 -> is_category_blank: 610건 / is_weight_zero: 4건 (원본 이상치와 차이 없음)
+-- 정합성 플래그 수 확인 -> is_category_blank: 610건 / is_category_en_unmapped: 13건 / is_weight_zero: 4건 (원본 이상치와 차이 없음 is_category_blank + is_category_en_unmapped = 623건 = 두 테이블 간 조인시 결측치 건수)
 SELECT  SUM(is_category_blank = 1) AS category_blank_cnt
+		,SUM(is_category_en_unmapped = 1) AS category_en_blank_cnt
 		,SUM(is_weight_zero = 1) AS weight_zero_cnt
   FROM  olist_stg.stg_products;
 
