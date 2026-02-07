@@ -254,15 +254,15 @@ Staging 레이어에서는 데이터의 해석이나 KPI 계산은 수행하지 
 
 | 테이블명                              | 설명                   |
 | :-------------------------------- | -------------------- |
-| orders                            | 주문 단위의 기본 정보         |
-| order_items                       | 주문 내 상품 단위 정보        |
-| order_payments                    | 주문별 결제 정보            |
-| order_reviews                     | 주문에 대한 고객 리뷰 정보      |
-| customers                         | 고객 기본 정보             |
-| products                          | 상품 메타 정보             |
-| sellers                           | 판매자 정보               |
-| geolocation                       | 우편번호 단위 위치 정보        |
-| product_category_name_translation | 상품 카테고리 번역 정보(영문 번역) |
+| stg_orders                        | 주문 단위의 기본 정보         |
+| stg_order_items                   | 주문 내 상품 단위 정보        |
+| stg_order_payments                | 주문별 결제 정보            |
+| stg_order_reviews                 | 주문에 대한 고객 리뷰 정보      |
+| stg_customers                     | 고객 기본 정보             |
+| stg_products                      | 상품 메타 정보             |
+| stg_sellers                       | 판매자 정보               |
+| stg_geolocation                   | 우편번호 단위 위치 정보        |
+
 
 
 ### Staging 레이어 테이블 명세
@@ -597,18 +597,25 @@ Indexes:
 | **product_height_cm**          | INT          | Y    | 상품 높이(cm)    | 원본 값 유지       |
 | **product_width_cm**           | INT          | Y    | 상품 너비(cm)    | 원본 값 유지       |
 
-- **컬럼 명세(2): 파생 컬럼 - 상품 부피**
+-  **컬럼 명세(2): 조인 컬럼**
+
+| 컬럼명                          | 타입           | NULL | 설명       | 비고                                            |
+| :--------------------------- | ------------ | ---- | -------- | --------------------------------------------- |
+| **product_cateogry_name_en** | VARHCAR(100) | Y    | 상품명 (영어) | product_category_name_<br>translation 테이블과 조인 |
+
+- **컬럼 명세(3): 파생 컬럼 - 상품 부피**
 
 | 컬럼명                    | 타입     | NULL | 설명                            | 파생 기준                                          |
 | :--------------------- | ------ | ---- | ----------------------------- | ---------------------------------------------- |
 | **product_volume_cm3** | BIGINT | Y    | 상품 부피<br>(3개 치수 모두 존재할 때만 계산) | length x height x width (세 컬럼이 모두 NOT NULL일 때) |
 
-- **컬럼 명세(3): 플래그 컬럼**
+- **컬럼 명세(4): 플래그 컬럼**
 
-| 컬럼명                   | 타입         | NULL | 설명             | 파생 기준                              |
-| :-------------------- | ---------- | ---- | -------------- | ---------------------------------- |
-| **is_category_blank** | TINYINT(1) | N    | 상품 카테고리 미기재 여부 | product_category_name IS NULL 이면 1 |
-| **is_weight_zero**    | TINYINT(1) | N    | 상품 무게 이상치 여부   | product_weight_g = 0 이면 1          |
+| 컬럼명                     | 타입         | NULL | 설명             | 파생 기준                                |
+| :---------------------- | ---------- | ---- | -------------- | ------------------------------------ |
+| **is_category_blank**   | TINYINT(1) | N    | 상품 카테고리 미기재 여부 | product_category_name IS NULL 이면 1   |
+| **is_weight_zero**      | TINYINT(1) | N    | 상품 무게 이상치 여부   | product_weight_g = 0 이면 1            |
+| is_category_en_unmapped | TINYINT(1) | N    | 영문 카테고리 존재 여부  | product_category_name_en IS NULL이면 1 |
 
 
 #### stg.sellers
@@ -828,29 +835,29 @@ Indexes:
 
 | 컬럼명                    | 타입          | NULL | 설명         | 비고                                                    |
 | :--------------------- | ----------- | ---- | ---------- | ----------------------------------------------------- |
-| review_id              | VARCHAR(50) | N    | 리뷰 식별자     | 복합 PK 구성 요소                                           |
-| order_id               | VARCHAR(50) | N    | 주문 식별자     | 복합 PK 구성 요소 / 조인 키                                    |
-| review_score           | TINYINT     | N    | 리뷰 점수(1~5) | DQ 상 NULL, 이상치가 0건이고,<br>리뷰 점수 기반 이벤트이므로 NOT NULL을 보장 |
-| review_comment_title   | TEXT        | Y    | 리뷰 제목      | 공백이 다수 존재 -> NULL로 표준화                                |
-| review_comment_message | TEXT        | Y    | 리뷰 내용      | 공백이 다수 존재 -> NULL로 표준화                                |
-| review_creation_dt     | DATETIME    | Y    | 리뷰 생성 시각   | review_creation_date에 대해 STR_TO_DATE 적용               |
-| review_answer_dt       | DATETIME    | Y    | 리뷰 답변 시각   | review_answer_timestamp에 대해 STR_TO_DATE 적용            |
+| **review_id**              | VARCHAR(50) | N    | 리뷰 식별자     | 복합 PK 구성 요소                                           |
+| **order_id**               | VARCHAR(50) | N    | 주문 식별자     | 복합 PK 구성 요소 / 조인 키                                    |
+| **review_score**           | TINYINT     | N    | 리뷰 점수(1~5) | DQ 상 NULL, 이상치가 0건이고,<br>리뷰 점수 기반 이벤트이므로 NOT NULL을 보장 |
+| **review_comment_title**   | TEXT        | Y    | 리뷰 제목      | 공백이 다수 존재 -> NULL로 표준화                                |
+| **review_comment_message** | TEXT        | Y    | 리뷰 내용      | 공백이 다수 존재 -> NULL로 표준화                                |
+| **review_creation_dt**     | DATETIME    | Y    | 리뷰 생성 시각   | review_creation_date에 대해 STR_TO_DATE 적용               |
+| **review_answer_dt**       | DATETIME    | Y    | 리뷰 답변 시각   | review_answer_timestamp에 대해 STR_TO_DATE 적용            |
 
 
 - **컬럼 명세(2): 파생 컬럼 - 시간 관련**
 
 | 컬럼명                  | 타입   | NULL | 설명       | 생성 기준                    |
 | :------------------- | ---- | ---- | -------- | ------------------------ |
-| review_creation_date | DATE | Y    | 리뷰 생성 일자 | DATE(review_creation_dt) |
-| review_answer_date   | DATE | Y    | 리뷰 답변 일자 | DATE(review_answer_dt)   |
+| **review_creation_date** | DATE | Y    | 리뷰 생성 일자 | DATE(review_creation_dt) |
+| **review_answer_date**   | DATE | Y    | 리뷰 답변 일자 | DATE(review_answer_dt)   |
 
 
 - **컬럼 명세(3): 플래그 컬럼 - 문자열 결측치**
 
 | 컬럼명              | 타입         | NULL | 설명              | 생성 기준                        |
 | :--------------- | ---------- | ---- | --------------- | ---------------------------- |
-| is_title_blank   | TINYINT(1) | N    | 리뷰 제목 <br>공백 여부 | title 표준화 결과가 <br>NULL이면 1   |
-| is_message_blank | TINYINT(1) | N    | 리뷰 내용 <br>공백 여부 | message 표준화 결과가 <br>NULL이면 1 |
+| **is_title_blank**   | TINYINT(1) | N    | 리뷰 제목 <br>공백 여부 | title 표준화 결과가 <br>NULL이면 1   |
+| **is_message_blank** | TINYINT(1) | N    | 리뷰 내용 <br>공백 여부 | message 표준화 결과가 <br>NULL이면 1 |
 
 
 #### stg.geolocation
@@ -946,3 +953,316 @@ Indexes:
 | :----------------------- | ---------- | ---- | ----------------------------- | ---------------------------------------------- |
 | is_invalid_latlng_exists | TINYINT(1) | N    | 좌표 이상치 존재 여부                  | 해당 zip_prefix 그룹 내 invalid_latlng_cnt > 0 이면 1 |
 | is_multi_state           | TINYINT(1) | N    | 동일 zip_prefix의 복수 state 매핑 여부 | state_cnt > 1 이면 1                             |
+
+
+---
+
+## 3. Data Mart 레이어
+
+```
+Data Mart 레이어는 Staging 레이어에서 정제·표준화된 데이터를 기반으로,
+대시보드 및 비즈니스 KPI 산출을 위한 분석 전용 데이터 계층입니다.
+
+이 레이어의 주요 목적은 다음과 같습니다.
+
+1. KPI 계산 기준의 일관성 확보
+    - KPI 정의서에 명시된 지표(매출, 주문수, AOV, 배송 리드타임, 취소율 등)를
+      동일한 기준으로 재현 가능하도록 데이터 모델과 계산 규칙을 고정
+    - 지표 산출에 필요한 핵심 수치 컬럼을 Fact 테이블에 명시하고,
+      집계 로직은 ETL 또는 DM 집계 테이블/뷰로 표준화
+
+2. 분석/대시보드 성능 및 사용성 개선
+	- Raw/Staging 대비 조인 복잡도를 줄이기 위해 Fact/Dimension 구조로 단순화
+	- 날짜/지역/상품/판매자/고객 등 주요 분석 축을 Dimension으로 분리하여
+	  필터링과 슬라이싱이 안정적으로 수행되도록 설계
+	- 자주 사용되는 조인 키 및 기간 컬럼 중심으로 인덱스를 설계하여 조회 성능 확보
+
+3. 그레인(Grain) 고정 및 중복 집계 방지
+	- Fact 테이블은 각 테이블별로 1행의 의미(이벤트 단위)를 명확히 정의하고 고정
+	  ex. 주문 1건(FACT_ORDERS) / 주문상품 1건(FACT_ORDER_ITEMS)
+	- 서로 다른 그레인의 Fact 결합으로 인해 발생할 수 있는 row 폭발 및
+	  중복 집계를 방지하기 위해 Fact 간 직접 결합을 최소화하고,
+	  필요한 경우 목적에 맞는 집계 테이블/뷰를 별도로 제공
+
+본 프로젝트에서 Data Mart 레이어는 분석 목적에 따라 분리합니다. (Sales / Operations)
+
+- Sales Mart: 매출/상품/판매자/성과 중심
+- Operations Mart: 주문 상태/배송/리드타임 중심의 Operations Mart
+- 공통 Dimension(예: 날짜, 지역)은 Conformed Dimension으로 공유
+```
+
+
+### Data Mart 레이어 테이블 목록
+
+
+| 테이블명                                 | 설명                                                                   |
+| :----------------------------------- | -------------------------------------------------------------------- |
+| **dim_date**                         | 공용 날짜 차원<br>연/월/분기/주/요일 등 기간 집계를 위한 기준 축                             |
+| **dim_geolocation**                  | 공용 지역 차원<br>zip_code_prefix 기준 대표 좌표/도시/주 제공                         |
+| **dim_customer**                     | 공용 고객 차원<br>customer_unique_id 기준 고객 식별/세그먼트 분석을 위한 기준 축             |
+| **dim_product**                      | Sales Mart 차원<br>상품/카테고리 분석을 위한 기준 정보 제공                             |
+| **dim_seller**                       | Sales Mart 차원<br>판매자 식별 및 판매자 지역/성과 분석을 위한 기준 정보 제공                  |
+| **fact_order_items**                 | Sales Mart Fact(그레인: 주문상품 1건)<br>매출 기반 GMV 산출 및 상품/판매자 성과 분석 지원      |
+| **fact_orders**                      | Operations Mart Fact(그레인: 주문 1건)<br>주문 상태/배송/리드타임/취소율 등 운영 KPI 산출 기준 |
+| **vw_customer_first_purchase_month** | 고객별 첫 구매 월을 정의하는 기준 뷰<br>코호트 분석의 기준점 제공                              |
+| **vw_cohort_monthly_retention**      | 코호트별 월차 리텐션/재구매율 뷰<br>코호트 유지 구조 및 변화 분석 지원                           |
+| **vw_delivered_orders**              | 표준 필터 뷰<br>배송 완료 주문 집합을 정의하여 KPI 산출 조건을 일관되게 적용                      |
+| **vw_kpi_monthly_core**              | 월별 핵심 KPI 뷰<br>총 매출, 주문 수, AOV 등 핵심 시계열 KPI 제공                       |
+| **vw_kpi_monthly_cancellation**      | 월별 취소 KPI 뷰<br>전체 주문 기준 취소율 제공                                       |
+| **vw_sales_revenue_qc**              | QC 참고 지표<br>주문별 items 합계와 payments 합계 차이를 비교/모니터링                    |
+
+
+
+### Data Mart 레이어 테이블 명세
+
+
+#### 공용 차원(Conformed Dimension)
+
+
+**olist_dm.dim_date**
+
+```
+테이블명: olist_dm.dim_date
+
+테이블 source: 없음 (캘린더 생성 테이블)
+
+그레인(1행 정의): 날짜 1일 = 1 row
+
+Primary Key: date_key (YYYYMMDD, INT)
+
+Indexes:
+	- idx_dim_date_year_month (year_month): 월 단위 집계/조인 성능 개선용
+
+설계계 목적:
+	- KPI 시계열 집계(연/월/분기/주/요일) 기준 축 제공
+	- 코호트 분석에서 첫 구매월/월차(month_n) 계산 기준 제공
+
+적재 규칙:
+	- dim_date의 범위를 다음과 같이 지정
+		- 시작일: 주문 관련 주요 날짜 컬럼들의 최소값 한 달 전
+		- 종료일: 주문 관련 주요 날짜 컬럼들의 최대값 한 달 후
+		- 대상 컬럼: purchase / approved / delivered_carrier / 
+				    delivered_customer / estimated_delivery
+	- date_key는 DATE_FORMAT을 적용하여 YYYYMMDD로 설정한 후 PK로 지정
+	- 모든 컬럼이 캘린더 날짜를 기준으로 한 필수 컬럼으로 NOT NULL을 지정
+	- 캘린더 날짜를 기준으로 1 row 당 날짜의 파생 컬럼들을 생성
+	- 연중 주차는 WEEK(date, 3)을 적용해 ISO 주차 기준으로 지정
+	- 요일(1~7)은 월요일을 시작으로 지정 (1 = Mon)
+	- 플래그 컬럼을 통해 주중/주말 여부와 월의 시작/끝 여부를 파악
+	  (is_weekend / is_month_start / is_month_end)
+```
+
+- **컬럼 명세**
+
+| 컬럼명            | 타입         | NULL | 키   | 설명          | 생성 규칙/로직                                |
+| :------------- | ---------- | ---- | --- | ----------- | --------------------------------------- |
+| **date_key**       | INT        | N    | PK  | 날짜 키        | DATE_FORMAT(date, '%Y%m%d')             |
+| **date**           | DATE       | N    |     | 실제 날짜       | 캘린더 생성                                  |
+| **year**           | SMALLINT   | N    |     | 연도          | YEAR(date)                              |
+| **quarter**        | TINYINT    | N    |     | 분기(1~4)     | QUARTER(date)                           |
+| **month**          | TINYINT    | N    |     | 월(1~12)     | MONTH(date)                             |
+| **day**            | TINYINT    | N    |     | 일(1~31)     | DAY(date)                               |
+| **year_month**     | CHAR(7)    | N    |     | 연-월         | DATE_FORMAT(date, '%Y-%m')              |
+| **year_quarter**   | CHAR(7)    | N    |     | 연-분기        | CONCAT(YEAR(date), '-Q', QUARTER(date)) |
+| **week_of_year**   | TINYINT    | N    |     | 연중 주차(1~53) | WEEK(date, 3)                           |
+| **day_of_week**    | TINYINT    | N    |     | 요일(1~7)     | WEEKDAY(date) + 1 (1 = Mon)             |
+| **day_name**       | VARCHAR(9) | N    |     | 요일명         | DAYNAME(date)                           |
+| **is_weekend**     | TINYINT(1) | N    |     | 주말 여부       | WEEKDAY(date) IN (5, 6)이면 1             |
+| **is_month_start** | TINYINT(1) | N    |     | 월 시작일 여부    | DAY(date) = 1                           |
+| **is_month_end**   | TINYINT(1) | N    |     | 월 말일 여부     | date = LAST_DAY(date)                   |
+
+
+**olist_dm.dim_geolocation**
+
+```
+테이블명: olist_dm.dim_geolocation
+
+테이블 source: olist_stg.stg_geolocation
+
+그레인(1행 정의): zip_prefix 1개당 1 row (대표 city/state/lat/lng)
+
+Primary Key: geolocation_zip_code_prefix
+
+INDEXES:
+	- idx_dim_geolocation_state (geolocation_state): 주(state) 단위 집계/필터 성능용
+	- idx_dim_geolocation_city_state (geolocation_city_state): 
+	  도시-주 단위 집계/조인 성능용 
+
+설계 목적:
+	- 고객/판매자 주소(우편번호 prefix) 기반 지역 분석을 위한 표준 지리 차원 제공
+	- zip_code_prefix 단위로 대표 city/state/좌표를 제공하여 조인 안정성 확보
+	- 원본에서 발생하는 다중 매핑/좌표 이상치 등 정합성 이슈를 삭제하지 않고 플래그로 관리
+	- 대표 좌표의 신뢰도를 알 수 있는 컬럼 제공 (mode_cnt / mode_ratio_pct)
+
+적재 규칙:
+	- dm 레이어에서는 추가적인 집계/변환 로직을 생성하지 않으며 stg 산출 결과를 그대로 반영
+	- stg_geolocation은 zip_code_prefix 1개당 1 row로 대표값이 산출된 테이블
+	- geolocation_zip_code_prefix는 PK이므로 NOT NULL을 보장
+	- 대표 속성(city/state/lat/lng)은 원본/집계 결과에 따라 NULL을 허용
+	- 집계/지표 컬럼은 NOT NULL을 보장
+	  (row_cnt / mode_cnt / mode_ratio_pct / invalid_latlng_cnt /
+	   city_cnt / state_cnt)
+	- 품질 관리용 플래그 컬럼은 NOT NULL을 보장
+	  (is_invalid_latlng_exists / is_multi_city / is_multi_state)
+	- 원본 데이터의 커버리지 한계로 인한 조인 누락이 발생할 수 있는 구조적 특성이 있기 때문에
+	  참조 테이블로 조인시 LEFT JOIN을 기준으로 설계
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                         | 타입             | NULL | 키   | 설명                            | 생성 규칙/로직                                              |
+| :-------------------------- | -------------- | ---- | --- | ----------------------------- | ----------------------------------------------------- |
+| **geolocation_zip_code_prefix** | CHAR(5)        | N    | PK  | 우편번호(5자리)                     | stg_geolocation의 PK를 그대로 사용                           |
+| **geolocation_lat**             | DECIMAL(10, 6) | Y    |     | 대표 위도                         | stg에서 유효 범위 내 최빈값 기반 선정                               |
+| **geolocation_lng**             | DECIMAL(10, 6) | Y    |     | 대표 경도                         | stg에서 유효 범위 내 최빈값 기반 선정                               |
+| **geolocation_city**            | VARCHAR(200)   | Y    |     | 대표 도시명                        | stg에서 최빈값 기반 선정                                       |
+| **geolocation_state**           | CHAR(2)        | Y    |     | 대표 주                          | stg에서 최빈값 기반 선정                                       |
+| **geolocation_city_state**      | VARCHAR(200)   | Y    |     | 도시_주                          | CONCAT(geolocation_city, '__', geolocation_state)     |
+| **row_cnt**                     | INT            | N    |     | 해당 zip_prefix의 raw row 수      | COUNT(*)                                              |
+| **mode_cnt**                    | INT            | N    |     | 대표 좌표의 빈도                     | zip_prefix 내 최빈(lat, lng) 조합의 COUNT                   |
+| **mode_ratio_pct**              | DECIMAL(6, 2)  | N    |     | 대표 좌표 비중                      | ROUND(mode_cnt / row_cnt * 100, 2)                    |
+| **invalid_latlng_cnt**          | INT            | N    |     | 브라질 유효 범위 밖 좌표 건수             | SUM(lat/lng가 유효 범위 밖이면 1)                             |
+| **city_cnt**                    | TINYINT        | N    |     | zip_prefix 내 서로 다른 city 개수    | COUNT(DISTINCT geolocation_city)<br>(표준화 된 city를 사용)  |
+| **state_cnt**                   | TINYINT        | N    |     | zip_prefix 내 서로 다른 state 개수   | COUNT(DISTINCT geolocation_state)<br>(표준화된 state를 사용) |
+| **is_invalid_latlng_exists**    | TINYINT(1)     | N    |     | 좌표 이상치 존재 여부                  | invalid_latlng_cnt > 0이면 1                            |
+| **is_multi_city**               | TINYINT(1)     | N    |     | 동일 zip_prefix의 복수 city 매핑 여부  | city_cnt > 1이면 1                                      |
+| **is_multi_state**              | TINYINT(1)     | N    |     | 동일 zip_prefix의 복수 state 매핑 여부 | state_cnt > 1이면 1                                     |
+
+
+**olist_dm.dim_customer**
+
+```
+테이블명: olist_dm.dim_customer
+
+테이블 source: olist_stg.stg_customers
+
+그레인(1행 정의): customer_id 1개 = 1 row
+
+Primary Key: customer_id
+
+Indexes:
+	- idx_dm_dim_customer_unique_id (customer_unique_id): 
+	  동일 고객 단위 분석/조인 성능용
+	- idx_dm_dim_customer_zip_prefix (customer_zip_code_prefix): 지역 차원 조인용
+	- idx_dm_dim_customer_state (customer_state): 주(state) 단위 집계/필터 성능용
+	- idx_dm_dim_customer_city_state (customer_city_state): 
+	  시_주 단위 집계/필터 성능용
+
+설계 목적:
+	- 주문/리뷰/배송 등 fact 테이블에서 고객 단위 분석을 위한 고객 차원 제공
+	- 동일 고객(customer_unique_id) 기반 리텐션/코호트/반복 구매 분석을 위한
+	  식별자 제공
+	- 지역 분석을 위한 고객 주소 속성(zip_prefix/city/state)를 제공하고
+	  dim_geolocation과의 조인키 제공
+
+적재 규칙:
+	- dm 레이어에서는 추가적인 집계/변환 로직을 생성하지 않으며 stg 산출 결과를 그대로 반영
+	- customer_id는 PK이므로 NOT NULL을 보장
+	- customer_unique_id는 동일 고객 식별을 위한 핵심 키이므로 NOT NULL을 보장
+	- 주소 계열 컬럼은 원본 결측 가능성을 고려하여 NULL을 허용
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                      | 타입           | NULL | 키   | 설명                       | 생성 규칙/로직                                                  |
+| :----------------------- | ------------ | ---- | --- | ------------------------ | --------------------------------------------------------- |
+| **customer_id**              | VARCHAR(50)  | N    | PK  | 고객 식별자<br>(주문 fact 조인 키) | stg_customers 그대로 반영                                      |
+| **customer_unique_id**       | VARCHAR(50)  | N    |     | 동일 고객 식별자                | stg_customers 그대로 반영                                      |
+| **customer_zip_code_prefix** | CHAR(5)      | Y    |     | 고객 우편번호                  | stg_customers 표준화 결과 그대로 반영                               |
+| **customer_city**            | VARCHAR(100) | Y    |     | 고객 도시                    | stg_customers 표준화 결과 그대로 반영                               |
+| **customer_state**           | CHAR(2)      | Y    |     | 고객 주                     | stg_customer 표준화 결과 그대로 반영                                |
+| **customer_city_state**      | VARCHAR(200) | Y    |     | 도시_주                     | stg_customers 파생 컬럼 그대로 반영<br>(CONCAT(city, '__', state)) |
+
+
+**olist_dm.dim_product**
+
+```
+테이블명: olist_dm.dim_product
+
+테이블 source: olist_stg.stg_products
+
+그레인(1행 정의): 1 row = 1 product_id
+
+Primary Key: product_id
+
+Indexes:
+	- idx_dm_product_category_name (product_category_name): 
+	  카테고리 기준 집계/필터/그룹 분석용
+	- idx_dm_product_category_name_en (product_category_name_en):
+	  영어 라벨 기준 집계/필터/그룹 분석용
+
+설계 목적:
+	- 제품 식별자(product_id) 기준 공용 제품 차원 제고 
+	- stg에서 수행한 표준화/라벨링 결과를 DM에 고정
+		  - product_category_name 공백 -> NULL 표준화 결과 유지
+		  - product_category_name_en 매핑 결과 유지
+	- 제품 스펙(길이/무게/치수 등) 원본 보존 + 부피 제공
+	- 플래그 컬럼을 통한 유연한 필터링 제공
+
+적재 규칙:
+	- dm 레이어에서는 추가적인 집계/변환 로직을 생성하지 않으며 stg 산출 결과를 그대로 반영
+	- product_id는 PK이므로 NOT NULL을 보장
+	- 플래그 컬럼은 NOT NULL(1/0)을 보장
+	- 그 외 컬럼은 데이터 보존을 위해 NULL을 허용
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                            | 타입           | NULL | Key | 정의             | 생성 규칙/로직                                           |
+| :----------------------------- | ------------ | ---- | --- | -------------- | -------------------------------------------------- |
+| **product_id**                 | VARCHAR(50)  | N    | PK  | 상품 식별자         | stg_products 그대로 반영                                |
+| **product_category_name**      | VARCHAR(100) | Y    |     | 상품 분류명         | stg_products 그대로 반영                                |
+| **product_category_name_en**   | VARCHAR(100) | Y    |     | 상품 분류 영문 라벨    | stg_products 그대로 반영                                |
+| **product_name_length**        | INT          | Y    |     | 상품명 문자열 길이     | stg_products 그대로 반영                                |
+| **product_description_length** | INT          | Y    |     | 상품 설명 문자열 길이   | stg_products 그대로 반영                                |
+| **product_photos_qty**         | INT          | Y    |     | 상품 사진 개수       | stg_products 그대로 반영                                |
+| **product_weight_g**           | INT          | Y    |     | 상품 무게(g)       | stg_products 그대로 반영                                |
+| **product_length_cm**          | INT          | Y    |     | 상품 길이(cm)      | stg_products 그대로 반영                                |
+| **product_height_cm**          | INT          | Y    |     | 상품 높이(cm)      | stg_products 그대로 반영                                |
+| **product_width_cm**           | INT          | Y    |     | 상품 너비(cm)      | stg_products 그대로 반영                                |
+| **product_volume_cm3**         | BIGINT       | Y    |     | 상품 부피($cm^3$)  | stg_products 그대로 반영                                |
+| **is_category_blank**          | TINYINT(1)   | N    |     | 카테고리 미기재 여부    | category_name IS NULL이면 1                          |
+| **is_category_en_unmapped**    | TINYINT(1)   | N    |     | 영문 라벨 매핑 실패 여부 | category_name NOT NULL AND category_en IS NULL이면 1 |
+| **is_weight_zero**             | TINYINT(1)   | N    |     | 무게 0 이상치 여부    | weight_g = 0이면 1                                   |
+
+
+**olist_dm.dim_seller**
+
+```
+테이블명: olist_dm.dim_seller
+
+테이블 source: olist_stg.stg_sellers
+
+그레인(1행 정의): 1 row = 1 seller_id
+
+Primary Key: seller_id
+
+Indexes:
+	- idx_dm_dim_seller_zip_prefix (seller_zip_code_prefix): 지역 분석/조인/필터용
+	- idx_dm_dim_seller_state (seller_state): 주 단위 집계/필터용
+	- idx_dm_dim_seller_city_state (seller_city_state): 도시_주 단위 분석/필터용
+
+설계 목적:
+	- 판매자 식별자(seller_id) 기준 판매자 차원 제공
+	- Sales Mart에서 판매자 기준 성과 분석(매출/주문/상품 성과 등)을 위한 판매자 차원 제공
+	- stg 레이어에서 수행한 정제/표준화 결과를 그대로 반영하여 차원 값을 고정
+
+적재 규칙:
+	- dm 레이어에서는 추가적인 집계/변환 로직을 생성하지 않으며 stg 산출 결과를 그대로 반영
+	- seller_id는 PK이므로 NOT NULL을 보장
+	- 그 외 컬럼은 데이터 보존을 위해 NULL을 허용
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                    | 타입           | NULL | Key | 설명              | 생성 규칙/로직           |
+| :--------------------- | ------------ | ---- | --- | --------------- | ------------------ |
+| seller_id              | VARCHAR(50)  | N    | PK  | 판매자 식별자         | stg_sellers 그대로 반영 |
+| seller_zip_code_prefix | CHAR(5)      | Y    |     | 판매자 우편번호 prefix | stg_sellers 그대로 반영 |
+| seller_city            | VARCHAR(100) | Y    |     | 판매자 도시          | stg_sellers 그대로 반영 |
+| seller_state           | CHAR(2)      | Y    |     | 판매자 주           | stg_sellers 그대로 반영 |
+| seller_city_state      | VARCHAR(200) | Y    |     | 판매자 도시_주        | stg_sellers 그대로 반영 |
