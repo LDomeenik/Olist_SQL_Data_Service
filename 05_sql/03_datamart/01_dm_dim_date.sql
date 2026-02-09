@@ -4,7 +4,7 @@
 /*
  * File: dm_dim_date.sql
  * Description:
- * 	- Data MArt 공용 날짜 차원(dim_date) 생성 및 적재
+ * 	- Data Mart 공용 날짜 차원(dim_date) 생성 및 적재
  * 	- Grain: 1 row = 1 day
  * 	- ISO 주차/요일 기준 적용
  * 
