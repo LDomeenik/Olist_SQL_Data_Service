@@ -343,11 +343,11 @@ Indexes:
 
 - **컬럼 명세 (4): 플래그 지표**
 
-| 컬럼명                    | 타입         | NULL | 설명                       | 파생 기준                                                                                 |
-| :--------------------- | ---------- | ---- | ------------------------ | ------------------------------------------------------------------------------------- |
-| is_time_inconsistent   | TINYINT(1) | N    | 시간 순서 정합성 위반             | approved/carrier/delivered 중 <br>하나라도 < purchase_dt이면 1                               |
-| is_status_inconsistent | TINYINT(1) | N    | 상태-시간 강한 위반              | delivered인데 delivered_dt가 NULL OR canceled/unavailable인데 delivered_dt가 존재             |
-| is_carrier_dt_missing  | TINYINT(1) | N    | shipped/invoiced 인계시각 누락 | order_status IN <br>('shipped', 'invoiced') AND order_delivered_carrier_dt<br>IS NULL |
+| 컬럼명                        | 타입         | NULL | 설명                       | 파생 기준                                                                                 |
+| :------------------------- | ---------- | ---- | ------------------------ | ------------------------------------------------------------------------------------- |
+| **is_time_inconsistent**   | TINYINT(1) | N    | 시간 순서 정합성 위반             | approved/carrier/delivered 중 <br>하나라도 < purchase_dt이면 1                               |
+| **is_status_inconsistent** | TINYINT(1) | N    | 상태-시간 강한 위반              | delivered인데 delivered_dt가 NULL OR canceled/unavailable인데 delivered_dt가 존재             |
+| **is_carrier_dt_missing**  | TINYINT(1) | N    | shipped/invoiced 인계시각 누락 | order_status IN <br>('shipped', 'invoiced') AND order_delivered_carrier_dt<br>IS NULL |
 
 
 #### stg.customers
@@ -1166,14 +1166,17 @@ Indexes:
 
 - **컬럼 명세**
 
-| 컬럼명                      | 타입           | NULL | 키   | 설명                       | 생성 규칙/로직                                                  |
-| :----------------------- | ------------ | ---- | --- | ------------------------ | --------------------------------------------------------- |
+| 컬럼명                          | 타입           | NULL | 키   | 설명                       | 생성 규칙/로직                                                  |
+| :--------------------------- | ------------ | ---- | --- | ------------------------ | --------------------------------------------------------- |
 | **customer_id**              | VARCHAR(50)  | N    | PK  | 고객 식별자<br>(주문 fact 조인 키) | stg_customers 그대로 반영                                      |
 | **customer_unique_id**       | VARCHAR(50)  | N    |     | 동일 고객 식별자                | stg_customers 그대로 반영                                      |
 | **customer_zip_code_prefix** | CHAR(5)      | Y    |     | 고객 우편번호                  | stg_customers 표준화 결과 그대로 반영                               |
 | **customer_city**            | VARCHAR(100) | Y    |     | 고객 도시                    | stg_customers 표준화 결과 그대로 반영                               |
 | **customer_state**           | CHAR(2)      | Y    |     | 고객 주                     | stg_customer 표준화 결과 그대로 반영                                |
 | **customer_city_state**      | VARCHAR(200) | Y    |     | 도시_주                     | stg_customers 파생 컬럼 그대로 반영<br>(CONCAT(city, '__', state)) |
+
+
+#### Sales Mart 차원
 
 
 **olist_dm.dim_product**
@@ -1266,3 +1269,127 @@ Indexes:
 | seller_city            | VARCHAR(100) | Y    |     | 판매자 도시          | stg_sellers 그대로 반영 |
 | seller_state           | CHAR(2)      | Y    |     | 판매자 주           | stg_sellers 그대로 반영 |
 | seller_city_state      | VARCHAR(200) | Y    |     | 판매자 도시_주        | stg_sellers 그대로 반영 |
+
+
+#### Fact 테이블
+
+
+**olist_dm.fact_order_items**
+
+```
+테이블명: olist_dm.fact_order_items
+
+테이블 source:
+	- olist_stg.stg_order_items
+	- olist_stg.stg_orders
+	- olist_stg.stg_customers
+	- olist_stg.stg_sellers
+
+그레인(1행 정의): 1 row = 1 order item in 1 order (order_id, order_item_id)
+
+Primary Key: (order_id, order_item_id)
+
+Indexes:
+	- idx_dm_fact_order_items_date_key (order_purchase_date_key): 날짜 집계용
+	- idx_dm_fact_order_items_product (product_id): 상품 단위 집계용
+	- idx_dm_fact_order_items_seller (seller_id): 판매자 단위 집계용
+	- idx_dm_fact_order_items_customer (customer_id): 고객 단위 집계용
+	- idx_dm_fact_order_items_customer_zip_prefix (customer_zip_code_prefix):
+		고객 주소 단위 집계용
+	- idx_dm_fact_order_items_seller_zip_prefix (seller_zip_code_prefix):
+		판매자 주소 단위 집계용
+
+설계 목적:
+	- Sales Mart의 메인 Fact로서 주문-상품 단위 매출/배송비/수량 지표 집계를 단순화
+	- 상품/판매자/고객/지역/기간 기준 KPI 분석을 위한 표준 조인 축 제공
+	- dim_date의 PK(date_key)와 정합되는 구매일자 키(FK)를 Fact에 두어 
+	  시계열 분석 성능 확보
+
+적재 규칙:
+	-  dm 레이어에서는 추가적인 집계/변환 로직을 생성하지 않으며 stg 산출 결과를 그대로 반영
+	- stg_order_items를 base로 사용하고, orders/customers/sellers를 조인하여
+	  FK 컬럼을 확정
+	- order_purchase_date_key는 DATE_FORMAT(purchase_date, '%Y%m%d')를 적용하여 생성
+	- 그 외 컬럼은 stg의 값을 그대로 반영(추가적인 로직 없음)
+	- PK와 FK는 NOT NULL을 지정
+	- FK 중 zip_code_prefix는 원본 데이터 상 
+	  결측이 발생할 수 있으므로(데이터 커버리지의 한계) NULL을 허용
+	- 그 외 컬럼은 데이터 원본 보존과 확작성을 고려하여 NULL을 허용
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                          | 타입             | NULL | Key | 설명                   | 생성 규칙/로직                                   |
+| :--------------------------- | -------------- | ---- | --- | -------------------- | ------------------------------------------ |
+| **order_id**                 | VARCHAR(50)    | N    | PK  | 주문 식별자               | stg_order_items 그대로 반영                     |
+| **order_item_id**            | VARCHAR(50)    | N    | PK  | 주문 내 상품 식별자          | stg_order_items 그대로 반영                     |
+| **order_item_seq**           | INT            | Y    |     | 주문 내 아이템 순번          | stg_order_items 그대로 반영                     |
+| **customer_id**              | VARCHAR(50)    | N    | FK  | 고객 식별자               | stg_orders 그대로 반영                          |
+| **product_id**               | VARCHAR(50)    | N    | FK  | 상품 식별자               | stg_order_items 그대로 반영                     |
+| **seller_id**                | VARCHAR(50)    | N    | FK  | 판매자 식별자              | stg_order_items 그대로 반영                     |
+| **order_purchase_date_key**  | INT            | N    | FK  | 구매일자 키<br>(YYYYMMDD) | DATE_FORMAT(order_purchase_date, '%Y%m%d') |
+| **customer_zip_code_prefix** | CHAR(5)        | Y    | FK  | 고객 우편번호 prefix       | stg_customers 그대로 반영<br>(customer_id로 조인)  |
+| **seller_zip_code_prefix**   | CHAR(5)        | Y    | FK  | 판매자 우편번호 prefix      | stg_sellers 그대로 반영<br>(seller_id로 조인)      |
+| **price**                    | DECIMAL(10, 2) | Y    |     | 상품 가격                | stg_order_items 그대로 반영                     |
+| **freight_value**            | DECIMAL(10, 2) | Y    |     | 배송비                  | stg_order_items 그대로 반영                     |
+| **item_total_value**         | DECIMAL(10, 2) | Y    |     | 상품+배송비 합             | stg_order_items 그대로 반영                     |
+
+
+**olist_dm.fact_orders**
+
+```
+테이블명: olist_dm.fact_orders
+
+테이블 source:
+	- olist_stg.stg_orders
+	- olist_stg.stg_customers
+	  
+그레인(1행 정의): 1 row = 1 order_id
+
+Primary Key: order_id
+
+Indexes:
+	- idx_dm_fact_orders_purchase_date_key (order_purchase_date_key): 
+		기간 필터/집계용
+	- idx_dm_fact_orders_customer_id (customer_id): 고객 단위 분석/조인용
+	- idx_dm_fact_orders_status (order_status): 상태 기반 필터/집계용
+	- idx_dm_fact_orders_zip_prefix (customer_zip_code_prefix): 지역 기반 필터/집계용
+
+설계 목적:
+	- Operations Data Mart의 메인 Fact 테이블로서
+	  주문 상태(order_status)와 프로세스 시점 데이터를 기반으로 운영 KPI를
+	  일관된 기준으로 산출
+	- 배송 리드타임/지연 여부 등 운영 품질 점검 분석 지원
+	- 주문-상품 단위와 다른 grain을 혼합하지 않고 주문 1행을 유지
+
+적재 규칙:
+	-  dm 레이어에서는 추가적인 집계/변환 로직을 생성하지 않으며 stg 산출 결과를 그대로 반영
+	- stg_orders를 base로 사용하여 주문 1행을 구성
+	- customer_zip_code_prefix는 stg_customers를 customer_id로 조인하여 반영
+	- order_purchase_date_key는 purchase_dt에서 YYYYMMDD로 생성
+	- PK와 FK는 NOT NULL을 지정
+	- 그 외 컬럼은 데이터 원본 보존과 확장성을 고려하여 NULL을 허용(플래그 컬럼 제외)
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                         | 타입          | NULL | Key | 설명                   | 생성 규칙/로직                                   |
+| :-------------------------- | ----------- | ---- | --- | -------------------- | ------------------------------------------ |
+| order_id                    | VARCHAR(50) | N    | PK  | 주문 식별자               | stg_orders 그대로 반영                          |
+| customer_id                 | VARCHAR(50) | N    | FK  | 고객 식별자               | stg_orders 그대로 반영                          |
+| order_purchase_date_key     | INT         | N    | FK  | 구매일자 키<br>(YYYYMMDD) | DATE_FORMAT(order_purchase_date, '%Y%m%d') |
+| customer_zip_code_prefix    | CHAR(5)     | Y    | FK  | 고객 우편번호 prefix       | stg_customers 그대로 반영<br>(customer_id로 조인)  |
+| order_status                | VARCHAR(20) | N    |     | 주문 상태                | stg_orders 그대로 반영                          |
+| order_purchase_dt           | DATETIME    | N    |     | 구매 시각                | stg_orders 그대로 반영                          |
+| order_approved_dt           | DATETIME    | Y    |     | 승인 시각                | stg_orders 그대로 반영                          |
+| order_delivered_carrier_dt  | DATETIME    | Y    |     | 배송사 인계 시각            | stg_orders 그대로 반영                          |
+| order_delivered_customer_dt | DATETIME    | Y    |     | 고객 배송 완료 시각          | stg_orders 그대로 반영                          |
+| order_estimated_delivery_dt | DATE        | Y    |     | 예상 배송일               | stg_orders 그대로 반영                          |
+| approve_lead_days           | INT         | Y    |     | 구매 -> 승인 소요일         | stg_orders 그대로 반영                          |
+| delivery_lead_days          | INT         | Y    |     | 구매 -> 배송완료 소요일       | stg_orders 그대로 반영                          |
+| delivery_delay_days         | INT         | Y    |     | 예상일 대비 실제 배송 차이 (일)  | stg_orders 그대로 반영                          |
+| is_delivered                | TINYINT(1)  | N    |     | 배송 완료 여부             | stg_orders 그대로 반영                          |
+| is_canceled                 | TINYINT(1)  | N    |     | 취소/미배송 여부            | stg_orders 그대로 반영                          |
+
