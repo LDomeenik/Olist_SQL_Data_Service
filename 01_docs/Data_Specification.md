@@ -493,7 +493,7 @@ Indexes:
 | **item_total_value** | DECIMAL(10, 2) | Y    | 주문 상품 단위 금액의 합 | CASE WHEN price IS NULL OR freight_value IS NULL THEN NULL<br>ELSE ROUND(price + freight_value, 2)<br>END |
 
 
-#### stg_products
+#### stg.products
 
 ```
 테이블명: olist_stg.stg_products
@@ -999,18 +999,14 @@ Data Mart 레이어는 Staging 레이어에서 정제·표준화된 데이터를
 | :----------------------------------- | -------------------------------------------------------------------- |
 | **dim_date**                         | 공용 날짜 차원<br>연/월/분기/주/요일 등 기간 집계를 위한 기준 축                             |
 | **dim_geolocation**                  | 공용 지역 차원<br>zip_code_prefix 기준 대표 좌표/도시/주 제공                         |
-| **dim_customer**                     | 공용 고객 차원<br>customer_unique_id 기준 고객 식별/세그먼트 분석을 위한 기준 축             |
+| **dim_customer**                     | 공용 고객 차원<br>customer_id 기준 고객 식별/세그먼트 분석을 위한 기준 축                    |
 | **dim_product**                      | Sales Mart 차원<br>상품/카테고리 분석을 위한 기준 정보 제공                             |
 | **dim_seller**                       | Sales Mart 차원<br>판매자 식별 및 판매자 지역/성과 분석을 위한 기준 정보 제공                  |
 | **fact_order_items**                 | Sales Mart Fact(그레인: 주문상품 1건)<br>매출 기반 GMV 산출 및 상품/판매자 성과 분석 지원      |
 | **fact_orders**                      | Operations Mart Fact(그레인: 주문 1건)<br>주문 상태/배송/리드타임/취소율 등 운영 KPI 산출 기준 |
-| **vw_customer_first_purchase_month** | 고객별 첫 구매 월을 정의하는 기준 뷰<br>코호트 분석의 기준점 제공                              |
-| **vw_cohort_monthly_retention**      | 코호트별 월차 리텐션/재구매율 뷰<br>코호트 유지 구조 및 변화 분석 지원                           |
-| **vw_delivered_orders**              | 표준 필터 뷰<br>배송 완료 주문 집합을 정의하여 KPI 산출 조건을 일관되게 적용                      |
-| **vw_kpi_monthly_core**              | 월별 핵심 KPI 뷰<br>총 매출, 주문 수, AOV 등 핵심 시계열 KPI 제공                       |
-| **vw_kpi_monthly_cancellation**      | 월별 취소 KPI 뷰<br>전체 주문 기준 취소율 제공                                       |
-| **vw_sales_revenue_qc**              | QC 참고 지표<br>주문별 items 합계와 payments 합계 차이를 비교/모니터링                    |
-
+| **vw_delivered_orders**              | Operations Mart표준 필터 뷰<br>배송 완료 주문 집합을 정의하여 KPI 산출 조건을 일관되게 적용       |
+| **vw_delivered_order_items**         | Sales Mart 표준 필터 뷰<br>배송 완료 주문상품 집합을 정의하여 KPI 산출 조건을 일관되게 적용         |
+| **vw_customer_first_purchase_month** | 고객별 첫 구매 월을 정의하는 기준 뷰(customer_unique_id 기준)<br>코호트 분석의 기준점 제공       |
 
 
 ### Data Mart 레이어 테이블 명세
@@ -1019,7 +1015,7 @@ Data Mart 레이어는 Staging 레이어에서 정제·표준화된 데이터를
 #### 공용 차원(Conformed Dimension)
 
 
-**olist_dm.dim_date**
+**dm.dim_date**
 
 ```
 테이블명: olist_dm.dim_date
@@ -1033,7 +1029,7 @@ Primary Key: date_key (YYYYMMDD, INT)
 Indexes:
 	- idx_dim_date_year_month (year_month): 월 단위 집계/조인 성능 개선용
 
-설계계 목적:
+설계 목적:
 	- KPI 시계열 집계(연/월/분기/주/요일) 기준 축 제공
 	- 코호트 분석에서 첫 구매월/월차(month_n) 계산 기준 제공
 
@@ -1072,7 +1068,7 @@ Indexes:
 | **is_month_end**   | TINYINT(1) | N    |     | 월 말일 여부     | date = LAST_DAY(date)                   |
 
 
-**olist_dm.dim_geolocation**
+**dm.dim_geolocation**
 
 ```
 테이블명: olist_dm.dim_geolocation
@@ -1111,8 +1107,8 @@ INDEXES:
 
 - **컬럼 명세**
 
-| 컬럼명                         | 타입             | NULL | 키   | 설명                            | 생성 규칙/로직                                              |
-| :-------------------------- | -------------- | ---- | --- | ----------------------------- | ----------------------------------------------------- |
+| 컬럼명                             | 타입             | NULL | 키   | 설명                            | 생성 규칙/로직                                              |
+| :------------------------------ | -------------- | ---- | --- | ----------------------------- | ----------------------------------------------------- |
 | **geolocation_zip_code_prefix** | CHAR(5)        | N    | PK  | 우편번호(5자리)                     | stg_geolocation의 PK를 그대로 사용                           |
 | **geolocation_lat**             | DECIMAL(10, 6) | Y    |     | 대표 위도                         | stg에서 유효 범위 내 최빈값 기반 선정                               |
 | **geolocation_lng**             | DECIMAL(10, 6) | Y    |     | 대표 경도                         | stg에서 유효 범위 내 최빈값 기반 선정                               |
@@ -1130,7 +1126,7 @@ INDEXES:
 | **is_multi_state**              | TINYINT(1)     | N    |     | 동일 zip_prefix의 복수 state 매핑 여부 | state_cnt > 1이면 1                                     |
 
 
-**olist_dm.dim_customer**
+**dm.dim_customer**
 
 ```
 테이블명: olist_dm.dim_customer
@@ -1179,7 +1175,7 @@ Indexes:
 #### Sales Mart 차원
 
 
-**olist_dm.dim_product**
+**dm.dim_product**
 
 ```
 테이블명: olist_dm.dim_product
@@ -1232,7 +1228,7 @@ Indexes:
 | **is_weight_zero**             | TINYINT(1)   | N    |     | 무게 0 이상치 여부    | weight_g = 0이면 1                                   |
 
 
-**olist_dm.dim_seller**
+**dm.dim_seller**
 
 ```
 테이블명: olist_dm.dim_seller
@@ -1264,17 +1260,17 @@ Indexes:
 
 | 컬럼명                    | 타입           | NULL | Key | 설명              | 생성 규칙/로직           |
 | :--------------------- | ------------ | ---- | --- | --------------- | ------------------ |
-| seller_id              | VARCHAR(50)  | N    | PK  | 판매자 식별자         | stg_sellers 그대로 반영 |
-| seller_zip_code_prefix | CHAR(5)      | Y    |     | 판매자 우편번호 prefix | stg_sellers 그대로 반영 |
-| seller_city            | VARCHAR(100) | Y    |     | 판매자 도시          | stg_sellers 그대로 반영 |
-| seller_state           | CHAR(2)      | Y    |     | 판매자 주           | stg_sellers 그대로 반영 |
-| seller_city_state      | VARCHAR(200) | Y    |     | 판매자 도시_주        | stg_sellers 그대로 반영 |
+| **seller_id**              | VARCHAR(50)  | N    | PK  | 판매자 식별자         | stg_sellers 그대로 반영 |
+| **seller_zip_code_prefix** | CHAR(5)      | Y    |     | 판매자 우편번호 prefix | stg_sellers 그대로 반영 |
+| **seller_city**            | VARCHAR(100) | Y    |     | 판매자 도시          | stg_sellers 그대로 반영 |
+| **seller_state**           | CHAR(2)      | Y    |     | 판매자 주           | stg_sellers 그대로 반영 |
+| **seller_city_state**      | VARCHAR(200) | Y    |     | 판매자 도시_주        | stg_sellers 그대로 반영 |
 
 
 #### Fact 테이블
 
 
-**olist_dm.fact_order_items**
+**dm.fact_order_items**
 
 ```
 테이블명: olist_dm.fact_order_items
@@ -1336,7 +1332,7 @@ Indexes:
 | **item_total_value**         | DECIMAL(10, 2) | Y    |     | 상품+배송비 합             | stg_order_items 그대로 반영                     |
 
 
-**olist_dm.fact_orders**
+**dm.fact_orders**
 
 ```
 테이블명: olist_dm.fact_orders
@@ -1345,7 +1341,7 @@ Indexes:
 	- olist_stg.stg_orders
 	- olist_stg.stg_customers
 	  
-그레인(1행 정의): 1 row = 1 order_id
+그레인(1행 정의): 1 row = 1 order id
 
 Primary Key: order_id
 
@@ -1377,19 +1373,180 @@ Indexes:
 
 | 컬럼명                         | 타입          | NULL | Key | 설명                   | 생성 규칙/로직                                   |
 | :-------------------------- | ----------- | ---- | --- | -------------------- | ------------------------------------------ |
-| order_id                    | VARCHAR(50) | N    | PK  | 주문 식별자               | stg_orders 그대로 반영                          |
-| customer_id                 | VARCHAR(50) | N    | FK  | 고객 식별자               | stg_orders 그대로 반영                          |
-| order_purchase_date_key     | INT         | N    | FK  | 구매일자 키<br>(YYYYMMDD) | DATE_FORMAT(order_purchase_date, '%Y%m%d') |
-| customer_zip_code_prefix    | CHAR(5)     | Y    | FK  | 고객 우편번호 prefix       | stg_customers 그대로 반영<br>(customer_id로 조인)  |
-| order_status                | VARCHAR(20) | N    |     | 주문 상태                | stg_orders 그대로 반영                          |
-| order_purchase_dt           | DATETIME    | N    |     | 구매 시각                | stg_orders 그대로 반영                          |
-| order_approved_dt           | DATETIME    | Y    |     | 승인 시각                | stg_orders 그대로 반영                          |
-| order_delivered_carrier_dt  | DATETIME    | Y    |     | 배송사 인계 시각            | stg_orders 그대로 반영                          |
-| order_delivered_customer_dt | DATETIME    | Y    |     | 고객 배송 완료 시각          | stg_orders 그대로 반영                          |
-| order_estimated_delivery_dt | DATE        | Y    |     | 예상 배송일               | stg_orders 그대로 반영                          |
-| approve_lead_days           | INT         | Y    |     | 구매 -> 승인 소요일         | stg_orders 그대로 반영                          |
-| delivery_lead_days          | INT         | Y    |     | 구매 -> 배송완료 소요일       | stg_orders 그대로 반영                          |
-| delivery_delay_days         | INT         | Y    |     | 예상일 대비 실제 배송 차이 (일)  | stg_orders 그대로 반영                          |
-| is_delivered                | TINYINT(1)  | N    |     | 배송 완료 여부             | stg_orders 그대로 반영                          |
-| is_canceled                 | TINYINT(1)  | N    |     | 취소/미배송 여부            | stg_orders 그대로 반영                          |
+| **order_id**                    | VARCHAR(50) | N    | PK  | 주문 식별자               | stg_orders 그대로 반영                          |
+| **customer_id**                 | VARCHAR(50) | N    | FK  | 고객 식별자               | stg_orders 그대로 반영                          |
+| **order_purchase_date_key**     | INT         | N    | FK  | 구매일자 키<br>(YYYYMMDD) | DATE_FORMAT(order_purchase_date, '%Y%m%d') |
+| **customer_zip_code_prefix**    | CHAR(5)     | Y    | FK  | 고객 우편번호 prefix       | stg_customers 그대로 반영<br>(customer_id로 조인)  |
+| **order_status**                | VARCHAR(20) | N    |     | 주문 상태                | stg_orders 그대로 반영                          |
+| **order_purchase_dt**           | DATETIME    | N    |     | 구매 시각                | stg_orders 그대로 반영                          |
+| **order_approved_dt**           | DATETIME    | Y    |     | 승인 시각                | stg_orders 그대로 반영                          |
+| **order_delivered_carrier_dt**  | DATETIME    | Y    |     | 배송사 인계 시각            | stg_orders 그대로 반영                          |
+| **order_delivered_customer_dt** | DATETIME    | Y    |     | 고객 배송 완료 시각          | stg_orders 그대로 반영                          |
+| **order_estimated_delivery_dt** | DATE        | Y    |     | 예상 배송일               | stg_orders 그대로 반영                          |
+| **approve_lead_days**           | INT         | Y    |     | 구매 -> 승인 소요일         | stg_orders 그대로 반영                          |
+| **delivery_lead_days**          | INT         | Y    |     | 구매 -> 배송완료 소요일       | stg_orders 그대로 반영                          |
+| **delivery_delay_days**         | INT         | Y    |     | 예상일 대비 실제 배송 차이 (일)  | stg_orders 그대로 반영                          |
+| **is_delivered**                | TINYINT(1)  | N    |     | 배송 완료 여부             | stg_orders 그대로 반영                          |
+| **is_canceled**                 | TINYINT(1)  | N    |     | 취소/미배송 여부            | stg_orders 그대로 반영                          |
 
+
+#### View
+
+
+**dm.vw_delivered_orders**
+
+```
+View 이름: olist_dm.vw_delivered_orders
+
+Source 테이블:
+	- olist_dm.fact_orders
+	- olist_dm.dim_date
+
+그레인(1행 정의): 1 row = 1 order id
+
+Primary Key(논리): order_id
+
+필터 규칙:
+	- order_status = 'delivered'
+	- is_delivered = 1
+
+설계 목적:
+	- 월별 KPI(매출, 주문 수, 구매자 수, AOV 등) 계산 시 
+	  배송 완료 조건을 반복 작성하지 않도록 기준 View 제공
+	- KPI 계산 로직을 단순화하고, 지표 정의의 일관성을 보장
+
+생성 규칙:
+	- 해당 View는 필터 기준 고정과 KPI 쿼리 단순화가 목적이며, 매출 집계는 포함되지 않음
+	- 배송 완료 여부(order_status='delivered'/is_delivered=1)만 필터링
+	- dim_date.year_month를 추가하여 월 라벨을 제공
+	- 시간 정합성 플래그는 다루지 않음
+	- order_id를 논리 PK로 사용
+	- customer_id/customer_zip_code_prefix/order_purchase_date_key를 조인 키로 사용
+	- 논리 PK와 조인 키(customer_zip_code_prefix 제외)는 NOT NULL이 보장됨
+	- customer_zip_code_prefix는 원천 커버리지 한계로 NULL을 허용
+	- year_month의 경우 원천 컬럼 역시 NOT NULL이 보장되므로 INNER JOIN을 활용하여
+	  NOT NULL을 보장
+	- 그 외 컬럼은 기존 fact_orders 테이블에 적재된 대로 사용됨
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                             | 타입(논리)      | NULL | Key      | 설명                  | 생성 규칙/로직                                                    |
+| ------------------------------- | ----------- | ---: | -------- | ------------------- | ----------------------------------------------------------- |
+| **order_id**                    | VARCHAR(50) |    N | PK(논리)   | 주문 식별자              | fact_orders 그대로 반영                                          |
+| **customer_id**                 | VARCHAR(50) |    N | FK(조인 키) | 고객 식별자              | fact_orders 그대로 반영                                          |
+| **customer_zip_code_prefix**    | CHAR(5)     |    Y | FK(조인 키) | 고객 우편번호 prefix      | fact_orders 그대로 반영                                          |
+| **order_purchase_date_key**     | INT         |    N | FK(조인 키) | 구매일자 키(YYYYMMDD)    | fact_orders 그대로 반영                                          |
+| **year_month**                  | CHAR(7)     |    N |          | 구매 기준 월 라벨(YYYY-MM) | dim_date.year_month (dd.date_key = order_purchase_date_key) |
+| **order_status**                | VARCHAR(20) |    N |          | 주문 상태               | fact_orders 그대로 반영                                          |
+| **is_delivered**                | TINYINT(1)  |    N |          | 배송 완료 여부            | fact_orders 그대로 반영                                          |
+| **is_canceled**                 | TINYINT(1)  |    N |          | 취소/미배송 여부           | fact_orders 그대로 반영                                          |
+| **order_purchase_dt**           | DATETIME    |    N |          | 구매 시각               | fact_orders 그대로 반영                                          |
+| **order_approved_dt**           | DATETIME    |    Y |          | 승인 시각               | fact_orders 그대로 반영                                          |
+| **order_delivered_carrier_dt**  | DATETIME    |    Y |          | 배송사 인계 시각           | fact_orders 그대로 반영                                          |
+| **order_delivered_customer_dt** | DATETIME    |    Y |          | 고객 배송 완료 시각         | fact_orders 그대로 반영                                          |
+| **order_estimated_delivery_dt** | DATE        |    Y |          | 예상 배송일              | fact_orders 그대로 반영                                          |
+| **approve_lead_days**           | INT         |    Y |          | 구매→승인 소요일           | fact_orders 그대로 반영                                          |
+| **delivery_lead_days**          | INT         |    Y |          | 구매→배송완료 소요일         | fact_orders 그대로 반영                                          |
+| **delivery_delay_days**         | INT         |    Y |          | 예상일 대비 실제 배송 차이(일)  | fact_orders 그대로 반영                                          |
+
+
+**dm.vw_delivered_order_items**
+
+```
+View 이름: olist_dm.vw_delivered_order_items
+
+Source 테이블:
+	- olist_dm.fact_order_items
+	- olist_dm.vw_delivered_orders
+	- olist_dm.dim_date
+
+그레인(1행 정의): 1 row = 1 order item in 1 order id
+
+Primary Key(논리): (order_id, order_item_id)
+
+필터 규칙:
+	- 배송 완료 기준은 olist_dm.vw_delivered_orders에서 고정
+	  (해당 View에서는 delivered 조건을 중복 작성하지 않음)
+
+설계 목적:
+	- 매출/GMV/AOV 등 item 기준 KPI 산출 시 배송 완료 기준을 일관되게 적용
+	- KPI 쿼리에서 Fact 간 조인/필터 반복을 제거하여 계산 로직을 단순화
+	- 주문(orders) 그레인과 주문상품(order_items) 그레인을 분리하여
+	  중복 집계 및 KPI 산출 실수를 구조적으로 방지
+
+생성 규칙:
+	- 해당 View는 필터 기준 고정과 KPI 쿼리 단순화가 목적이며, 매출 집계는 포함되지 않음
+	- fact_order_items를 base로 하여, vw_delivered_orders와 order_id로 
+	  INNER JOIN하여 배송 완료 주문에 속한 주문상품만 포함
+	- PK(논리)와 조인 키(customer_zip_code_prefix 제외)는 NOT NULL을 보장
+	- year_month는 vw_delivered_orders에서 제공되는 값을 사용하여 NOT NULL을 보장
+	- customer_zip_code_prefix는 원천 커버리지의 한계로 NULL을 허용
+	- 그 외는 fact_order_items 테이블에 적재된 대로 사용됨
+```
+
+
+- **컬럼 명세**
+
+|컬럼명|타입(논리)|NULL|Key|설명|생성 규칙/로직|
+|---|--:|--:|---|---|---|
+|**order_id**|VARCHAR(50)|N|PK|주문 식별자|fact_order_items 그대로|
+|**order_item_id**|VARCHAR(50)|N|PK|주문상품 식별자|fact_order_items 그대로|
+|**order_item_seq**|INT|Y||주문 내 아이템 순번|fact_order_items 그대로|
+|**customer_id**|VARCHAR(50)|N|FK|고객 식별자|vw_delivered_orders 그대로|
+|**customer_zip_code_prefix**|CHAR(5)|Y|FK|고객 우편번호 prefix|vw_delivered_orders 그대로|
+|**product_id**|VARCHAR(50)|N|FK|상품 식별자|fact_order_items 그대로|
+|**seller_id**|VARCHAR(50)|N|FK|판매자 식별자|fact_order_items 그대로|
+|**seller_zip_code_prefix**|CHAR(5)|Y|FK|판매자 우편번호 prefix|fact_order_items 그대로(이미 fact에 있다면 그대로)|
+|**order_purchase_date_key**|INT|N|FK|구매일자 키(YYYYMMDD)|vw_delivered_orders 그대로|
+|**year_month**|CHAR(7)|N||구매 기준 월 라벨(YYYY-MM)|vw_delivered_orders.year_month|
+|**price**|DECIMAL(10,2)|Y||상품 가격|fact_order_items 그대로|
+|**freight_value**|DECIMAL(10,2)|Y||배송비|fact_order_items 그대로|
+|**item_total_value**|DECIMAL(10,2)|Y||상품+배송비 합|fact_order_items 그대로|
+
+
+**dm.vw_customer_first_purchase_month**
+
+```
+View 이름: olist_dm.vw_customer_first_purchase_month
+
+테이블 source:
+	- olist_dm.vw_delivered_orders
+	- olist_dm.dim_customer
+	- olist_dm.dim_date
+
+그레인(1행 정의): 1 row = 1 customer_unique_id
+
+Primary Key(논리): customer_unique_id
+
+코호트 정의 기준:
+	- 배송 완료 주문(vw_delivered_orders)만을 대상으로 첫 구매를 정의
+	- 고객 식별 기준은 customer_unique_id
+	- 고객별 최초 구매 일자는 MIN(order_purchase_date_key)로 정의
+	- 최초 구매 월은 dim_date.year_month 기준으로 정의
+
+설계 목적:
+	- 고객별 첫 구매 월(cohort month)을 정의하는 기준 View
+	- 코호트 분석 및 월차 리텐션 분석의 기준점(first_purchase_month)을 제공
+	- 이후 코호트/리텐션/KPI View에서 공통 기준으로 재사용
+
+생성 규칙:
+	- 해당 View에서는 매출/주문 수 등 KPI 집계를 수행하지 않음
+	- 코호트 기준점 제공만을 목적으로 최소 컬럼만을 포함
+	  (첫 구매 기준을 배송 완료 기준으로 고정함으로써 KPI 산출 조건과의 불일치를 방지)
+	- vw_delivered_orders를 기준 집합으로 사용하여 배송 완료 조건을 일관되게 유지
+	- fact_orders 원본 데이터에는 직접 접근하지 않음
+	- dim_customer를 통해 customer_unique_id를 매핑
+	- first_purchase_date_key는 고객별 최소 order_purchase_date_key로 계산
+	- first_purchase_year_month는 dim_date와 INNER JOIN하여 NOT NULL을 보장
+```
+
+
+- **컬럼 명세**
+
+| 컬럼명                           | 타입(논리)      | NULL | Key | 설명                      | 생성 규칙 / 로직                                       |
+| ----------------------------- | ----------- | ---: | --- | ----------------------- | ------------------------------------------------ |
+| **customer_unique_id**        | VARCHAR(50) |    N | PK  | 동일 고객 식별자(사람 기준)        | dim_customer.customer_unique_id                  |
+| **first_purchase_date_key**   | INT         |    N | FK  | 고객의 첫 구매 일자 키(YYYYMMDD) | MIN(vw_delivered_orders.order_purchase_date_key) |
+| **first_purchase_year_month** | CHAR(7)     |    N |     | 고객의 첫 구매 월(YYYY-MM)     | dim_date.year_month                              |
