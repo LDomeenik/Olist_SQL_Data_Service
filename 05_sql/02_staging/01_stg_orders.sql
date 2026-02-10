@@ -58,7 +58,7 @@ SELECT  SUM(order_id IS NULL OR order_id = '') AS order_id_blank_cnt
 		,SUM(order_purchase_timestamp IS NULL OR order_purchase_timestamp = '') AS order_purchase_timestamp_blank_cnt
   FROM  olist_raw.orders;
 
--- order_status 분포 (delivered: 96,478 / shipped: 1,107 / canceled: 625 / unavailable: 609 / invoiced: 314 / processing: 301 / created: 5 / apporved: 2 => 99,441)
+-- order_status 분포 (delivered: 96,478 / shipped: 1,107 / canceled: 625 / unavailable: 609 / invoiced: 314 / processing: 301 / created: 5 / approved: 2 => 99,441)
 SELECT  LOWER(TRIM(REPLACE(order_status, '\r', ''))) AS order_status_norm
 		,COUNT(*) AS cnt
   FROM  olist_raw.orders
