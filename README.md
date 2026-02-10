@@ -12,6 +12,6 @@ Raw -> Staging -> Data Mart 구조의 SQL 기반 데이터 파이프라인을 �
 
 - [x] Raw Layer 설계 및 ETL
 - [x] Staging Layer 설계 및 ETL
-- [ ] Data Mart 설계 및 ETL
-- [ ] KPI 정의 및 집계
-- [ ] 분석 및 대시보드
+- [x] Data Mart 설계 및 ETL
+- [ ] KPI 정의 및 집계(분석 모듈)
+- [ ] 대시보드
