@@ -4,7 +4,7 @@
 /*
  * File: 01_init_environment.sql
  * Description:
- * 	- 데이터베이스 레이어 생성 (raw / stg / dm)
+ * 	- 데이터베이스 레이어 생성 (raw / stg / dm / am)
  * 	- raw 레이어 테이블을 정의 (olist의 원본 데이터를 바탕으로 9개의 테이블 생성)
  * 	- raw 레이어 테이블에 원본 데이터 적재
  * Notes:
@@ -17,7 +17,7 @@
 
 
 /*
- * 데이터베이스 생성: raw / staging / datamart 세 개의 레이어로 구성
+ * 데이터베이스 생성: raw / staging / datamart 세 개의 레이어로 구성 + KPI 집계를 위한 분석 모듈(am)
  */
 
 
@@ -34,6 +34,11 @@ CREATE DATABASE IF NOT EXISTS olist_stg
 
 -- dm schema 생성
 CREATE DATABASE IF NOT EXISTS olist_dm
+	CHARACTER SET utf8mb4
+	COLLATE utf8mb4_0900_ai_ci;
+
+-- am schema 생성
+CREATE DATABASE IF NOT EXISTS olist_am
 	CHARACTER SET utf8mb4
 	COLLATE utf8mb4_0900_ai_ci;
 

@@ -96,7 +96,7 @@ csv 상의 빈 값('')을 NULL로 변환하여 적재하였습니다.
 | seller_id           | VARCHAR |
 | shipping_limit_date | VARCHAR |
 | price               | DECIMAL |
-| feight_value        | DECIMAL |
+| freight_value       | DECIMAL |
 
 
 #### raw.order_payments
@@ -105,13 +105,13 @@ csv 상의 빈 값('')을 NULL로 변환하여 적재하였습니다.
 주문별 결제 수단 및 결제 금액 정보를 저장한 테이블입니다.
 ```
 
-| 컬럼명                 | 데이터 타입  |
-| :------------------ | ------- |
-| order_id            | VARCHAR |
-| payment_sequential  | INT     |
-| payment_type        | VARCHAR |
-| payment_intallments | INT     |
-| payment_value       | DECIMAL |
+| 컬럼명                  | 데이터 타입  |
+| :------------------- | ------- |
+| order_id             | VARCHAR |
+| payment_sequential   | INT     |
+| payment_type         | VARCHAR |
+| payment_installments | INT     |
+| payment_value        | DECIMAL |
 
 
 #### raw.order_reviews
@@ -601,7 +601,7 @@ Indexes:
 
 | 컬럼명                          | 타입           | NULL | 설명       | 비고                                            |
 | :--------------------------- | ------------ | ---- | -------- | --------------------------------------------- |
-| **product_cateogry_name_en** | VARHCAR(100) | Y    | 상품명 (영어) | product_category_name_<br>translation 테이블과 조인 |
+| **product_category_name_en** | VARCHAR(100) | Y    | 상품명 (영어) | product_category_name_<br>translation 테이블과 조인 |
 
 - **컬럼 명세(3): 파생 컬럼 - 상품 부피**
 
@@ -681,9 +681,9 @@ Indexes:
 
 - **컬럼 명세(2): 파생 컬럼 - 도시-주 결합
 
-| 컬럼명                   | 타입           | NULL | 설명            | 파생 기준                                     |
-| :-------------------- | ------------ | ---- | ------------- | ----------------------------------------- |
-| **seller_city_state** | VARCHAR(200) | Y    | 판매자 도시 - 주 정보 | CONCAT(sellers_city, '__', sellers_state) |
+| 컬럼명                   | 타입           | NULL | 설명            | 파생 기준                                   |
+| :-------------------- | ------------ | ---- | ------------- | --------------------------------------- |
+| **seller_city_state** | VARCHAR(200) | Y    | 판매자 도시 - 주 정보 | CONCAT(seller_city, '__', seller_state) |
 
 
 #### stg.order_payments
@@ -1489,21 +1489,21 @@ Primary Key(논리): (order_id, order_item_id)
 
 - **컬럼 명세**
 
-|컬럼명|타입(논리)|NULL|Key|설명|생성 규칙/로직|
-|---|--:|--:|---|---|---|
-|**order_id**|VARCHAR(50)|N|PK|주문 식별자|fact_order_items 그대로|
-|**order_item_id**|VARCHAR(50)|N|PK|주문상품 식별자|fact_order_items 그대로|
-|**order_item_seq**|INT|Y||주문 내 아이템 순번|fact_order_items 그대로|
-|**customer_id**|VARCHAR(50)|N|FK|고객 식별자|vw_delivered_orders 그대로|
-|**customer_zip_code_prefix**|CHAR(5)|Y|FK|고객 우편번호 prefix|vw_delivered_orders 그대로|
-|**product_id**|VARCHAR(50)|N|FK|상품 식별자|fact_order_items 그대로|
-|**seller_id**|VARCHAR(50)|N|FK|판매자 식별자|fact_order_items 그대로|
-|**seller_zip_code_prefix**|CHAR(5)|Y|FK|판매자 우편번호 prefix|fact_order_items 그대로(이미 fact에 있다면 그대로)|
-|**order_purchase_date_key**|INT|N|FK|구매일자 키(YYYYMMDD)|vw_delivered_orders 그대로|
-|**year_month**|CHAR(7)|N||구매 기준 월 라벨(YYYY-MM)|vw_delivered_orders.year_month|
-|**price**|DECIMAL(10,2)|Y||상품 가격|fact_order_items 그대로|
-|**freight_value**|DECIMAL(10,2)|Y||배송비|fact_order_items 그대로|
-|**item_total_value**|DECIMAL(10,2)|Y||상품+배송비 합|fact_order_items 그대로|
+| 컬럼명                          |        타입(논리) | NULL | Key | 설명                  | 생성 규칙/로직                       |
+| ---------------------------- | ------------: | ---: | --- | ------------------- | ------------------------------ |
+| **order_id**                 |   VARCHAR(50) |    N | PK  | 주문 식별자              | fact_order_items 그대로           |
+| **order_item_id**            |   VARCHAR(50) |    N | PK  | 주문상품 식별자            | fact_order_items 그대로           |
+| **order_item_seq**           |           INT |    Y |     | 주문 내 아이템 순번         | fact_order_items 그대로           |
+| **customer_id**              |   VARCHAR(50) |    N | FK  | 고객 식별자              | vw_delivered_orders 그대로        |
+| **customer_zip_code_prefix** |       CHAR(5) |    Y | FK  | 고객 우편번호 prefix      | vw_delivered_orders 그대로        |
+| **product_id**               |   VARCHAR(50) |    N | FK  | 상품 식별자              | fact_order_items 그대로           |
+| **seller_id**                |   VARCHAR(50) |    N | FK  | 판매자 식별자             | fact_order_items 그대로           |
+| **seller_zip_code_prefix**   |       CHAR(5) |    Y | FK  | 판매자 우편번호 prefix     | fact_order_items 그대로           |
+| **order_purchase_date_key**  |           INT |    N | FK  | 구매일자 키(YYYYMMDD)    | vw_delivered_orders 그대로        |
+| **year_month**               |       CHAR(7) |    N |     | 구매 기준 월 라벨(YYYY-MM) | vw_delivered_orders.year_month |
+| **price**                    | DECIMAL(10,2) |    Y |     | 상품 가격               | fact_order_items 그대로           |
+| **freight_value**            | DECIMAL(10,2) |    Y |     | 배송비                 | fact_order_items 그대로           |
+| **item_total_value**         | DECIMAL(10,2) |    Y |     | 상품+배송비 합            | fact_order_items 그대로           |
 
 
 **dm.vw_customer_first_purchase_month**

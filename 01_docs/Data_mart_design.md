@@ -211,7 +211,7 @@ Fact-Dimension 목록은 아래와 같습니다.
 
 주요 KPI와의 매핑은 아래와 같습니다.
 
-- 총 매출(GMV): SUM(item_total_value)
+- 총 매출: SUM(item_total_value)
 - 주문 상품 수: COUNT(*)
 - 주문 수: COUNT(DISTINCT order_id)
 - 평균 주문 상품 금액: AVG(item_total_value)
@@ -254,7 +254,7 @@ erDiagram
     string  customer_id FK
     string  product_id  FK
     string  seller_id   FK
-    date    order_purchase_date FK
+    date    order_purchase_date_key FK
     string  customer_zip_code_prefix FK
     string  seller_zip_code_prefix FK
 
@@ -355,8 +355,7 @@ Fact-Dimension 목록은 아래와 같습니다.
 주요 KPI와의 매핑은 아래와 같습니다.
 
 - 주문 수: COUNT(*)
-- 취소율: SUM(is_canceled) / COUNT(*)
-- 미배송(불가용) 비율: SUM(is_unavailable) / COUNT(*)
+- 취소율(미배송 포함): SUM(is_canceled) / COUNT(*)
 - 정상 완료율: SUM(is_delivered) / COUNT(*)
 - 평균 승인 리드타임: AVG(approve_lead_time_days)
 - 평균 배송 리드타임: AVG(delivery_lead_time_days)
@@ -389,7 +388,7 @@ erDiagram
 
     %% FK
     string  customer_id FK
-    date    order_purchase_date FK
+    date    order_purchase_date_key FK
     string  customer_zip_code_prefix FK
 
     %% Status / Timestamps
@@ -403,11 +402,9 @@ erDiagram
     %% Derived Metrics (Logic in ETL)
     int     approve_lead_time_days
     int     delivery_lead_time_days
-    int     estimated_vs_actual_days
 
     %% Flags
     int     is_canceled
-    int     is_unavailable
     int     is_delivered
     int     is_delayed
   }
