@@ -257,14 +257,14 @@ Primary Key (논리): year_month
 
 | 컬럼명                |            타입 | NULL |  Key   | 설명                     | 생성 기준/로직                                                                                 |
 | ------------------ | ------------: | :--: | :----: | ---------------------- | ---------------------------------------------------------------------------------------- |
-| year_month         |       CHAR(7) |  N   | PK(논리) | 연-월 라벨                 | `dim_date.year_month`                                                                    |
-| total_orders       |           INT |  N   |        | 해당 월 전체 주문 수(생성 기준)    | `COUNT(DISTINCT order_id)`                                                               |
-| canceled_orders    |           INT |  N   |        | 해당 월 취소 주문 수           | `COUNT(DISTINCT CASE WHEN order_status='canceled' THEN order_id END)`                    |
-| unavailable_orders |           INT |  N   |        | 해당 월 unavailable 주문 수  | `COUNT(DISTINCT CASE WHEN order_status='unavailable' THEN order_id END)`                 |
-| failed_orders      |           INT |  N   |        | 취소+unavailable(주문 미완료) | `COUNT(DISTINCT CASE WHEN order_status IN ('canceled','unavailable') THEN order_id END)` |
-| cancel_rate        | DECIMAL(10,6) |  Y   |        | 취소율(0~1)               | `canceled_orders / NULLIF(total_orders,0)`                                               |
-| unavailable_rate   | DECIMAL(10,6) |  Y   |        | unavailable 비율(0~1)    | `unavailable_orders / NULLIF(total_orders,0)`                                            |
-| failed_rate        | DECIMAL(10,6) |  Y   |        | 확장 취소율(0~1)            | `failed_orders / NULLIF(total_orders,0)`                                                 |
+| **year_month**         |       CHAR(7) |  N   | PK(논리) | 연-월 라벨                 | `dim_date.year_month`                                                                    |
+| **total_orders**       |           INT |  N   |        | 해당 월 전체 주문 수(생성 기준)    | `COUNT(DISTINCT order_id)`                                                               |
+| **canceled_orders**    |           INT |  N   |        | 해당 월 취소 주문 수           | `COUNT(DISTINCT CASE WHEN order_status='canceled' THEN order_id END)`                    |
+| **unavailable_orders** |           INT |  N   |        | 해당 월 unavailable 주문 수  | `COUNT(DISTINCT CASE WHEN order_status='unavailable' THEN order_id END)`                 |
+| **failed_orders**      |           INT |  N   |        | 취소+unavailable(주문 미완료) | `COUNT(DISTINCT CASE WHEN order_status IN ('canceled','unavailable') THEN order_id END)` |
+| **cancel_rate**        | DECIMAL(10,6) |  Y   |        | 취소율(0~1)               | `canceled_orders / NULLIF(total_orders,0)`                                               |
+| **unavailable_rate**   | DECIMAL(10,6) |  Y   |        | unavailable 비율(0~1)    | `unavailable_orders / NULLIF(total_orders,0)`                                            |
+| **failed_rate**        | DECIMAL(10,6) |  Y   |        | 확장 취소율(0~1)            | `failed_orders / NULLIF(total_orders,0)`                                                 |
 
 
 #### am.vw_cohort_monthly_core
