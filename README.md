@@ -64,7 +64,7 @@
 	  - 운영 안정성 분석: 전체 주문 기준
 - 공개 데이터 특성상 실제 비즈니스 맥락은 제한적으로 해석
 
-![data_schema.png](01_docs/data_schema.png)
+![data_schema.png](02_images/01_data_schema.png)
 
 
 ---
@@ -230,9 +230,9 @@
 		- vw_base_customer_monthly_purchase: 고객 단위 월별 구매 데이터
 		- vw_customer_first_purchase_month: 고객 최초 구매 기준 데이터
 
-![sales_data_mart_erd.png](01_docs/ERD/sales_data_mart_erd.png)
+![sales_data_mart_erd.png](02_images/02_sales_data_mart_erd.png)
 
-![operations_data_mart_erd.png](01_docs/ERD/operations_data_mart_erd.png)
+![operations_data_mart_erd.png](02_images/03_operations_data_mart_erd.png)
 
 
 ---
@@ -329,11 +329,11 @@
 고객 유지율이 낮아 장기적인 성장 안정성이 부족한 상태입니다.
 따라서, 유입 중심 성장에서 리텐션 중심 구조로 전환하는 것이 핵심 과제입니다.
 
-![Growth Structure Dashboard.png](04_dashboard/Growth_Structure_Dashboard.png)
+![Growth Structure Dashboard.png](02_images/04_Growth_Structure_Dashboard.png)
 
-![Growth Drill Down Dashboard.png](04_dashboard/Growth_Drill_Down_Dashboard.png)
+![Growth Drill Down Dashboard.png](02_images/05_Growth_Drill_Down_Dashboard.png)
 
-![Customer Value Structure Dashboard.png](04_dashboard/Customer_Value_Structure_Dashboard.png)
+![Customer Value Structure Dashboard.png](02_images/06_Customer_Value_Structure_Dashboard.png)
 
-![Operational Stability Dashboard.png](04_dashboard/Operational_Stability_Dashboard.png)
+![Operational Stability Dashboard.png](02_images/07_Operational_Stability_Dashboard.png)
 
