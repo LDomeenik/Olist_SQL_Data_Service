@@ -283,9 +283,7 @@ BI 레이어 및 Tableau 대시보드를 구축하여 분석 결과를 시각화
 		- vw_customer_first_purchase_month: 고객 최초 구매 기준 데이터
 
 
-관련 문서: [View Docs (raw/stg./dm)](./01_docs/Data_Specification.md)
-		 [View Docs (dm 설계)](./01_docs/Data_mart_design.md)
-		 [View Docs (am)](./01_docs/Analysis_Module.md)
+관련 문서:[View Docs (raw/stg./dm)](./01_docs/Data_Specification.md) / [View Docs (dm 설계)](./01_docs/Data_mart_design.md) / [View Docs (am)](./01_docs/Analytics_Module.md)
 
 
 ![sales_data_mart_erd.png](02_images/02_sales_data_mart_erd.png)
