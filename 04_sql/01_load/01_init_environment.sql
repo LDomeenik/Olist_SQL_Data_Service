@@ -7,9 +7,10 @@
  * 	- 데이터베이스 레이어 생성 (raw / stg / dm / am)
  * 	- raw 레이어 테이블을 정의 (olist의 원본 데이터를 바탕으로 9개의 테이블 생성)
  * 	- raw 레이어 테이블에 원본 데이터 적재
+ * 
  * Notes:
  * 	- 기본적인 레이어(스키마)를 구성하기 위한 스크립트로 모든 스크립트 중 가장 먼저 실행되어야 합니다.
- * 	- raw 스키마에 대한 적재이기 떄문에 데이터 가공이나 전처리는 진행되지 않은 상태입니다.
+ * 	- raw 스키마에 대한 적재이기 때문에 데이터 가공이나 전처리는 진행되지 않은 상태입니다.
  */
 
 
@@ -26,7 +27,7 @@ CREATE DATABASE IF NOT EXISTS olist_raw
 	CHARACTER SET utf8mb4
 	COLLATE utf8mb4_0900_ai_ci;
 
--- stg shcema 생성
+-- stg schema 생성
 CREATE DATABASE IF NOT EXISTS olist_stg
 	CHARACTER SET utf8mb4
 	COLLATE utf8mb4_0900_ai_ci;

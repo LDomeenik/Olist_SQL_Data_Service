@@ -4,14 +4,14 @@
 /*
  * File: dm_dim_geolocation.sql
  * Description:
- * 	- Data MArt 공용 지역 차원 생성 (source: olist_stg.stg_geolocation)
+ * 	- Data Mart 공용 지역 차원 생성 (source: olist_stg.stg_geolocation)
  * 	- Grain: 1 row = 1 zip_code_prefix (대표 city/state/lat/lng)
  * 
- * Note:
+ * Notes:
  * 	- 해당 dim_geolocation 테이블은 Sales Mart와 Operations Mart에서 모두 dimension 테이블로 사용되는 공용 차원 테이블입니다.
  * 	- stg_geolocation의 집계/로직을 그대로 가져왔습니다. (추가적인 집계/로직 없음)
- * 	- 따라서 DQ, QC의 경우. 이미 품질 검사가 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
- * 	- 조인 정합성 확인 결과 조인 누락이 있는 경우가 발견되었습니다 (customers: 278건 / sellers: 7건)
+ * 	- 따라서 DQ, QC의 경우 이미 품질 검사가 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
+ * 	- 조인 정합성 확인 결과 조인 누락이 일부 존재합니다 (customers: 278건 / sellers: 7건)
  * 	- geolocation은 대표 좌표와 주소를 설정하였다는 점과 커버리지의 한계로 인해 조인 누락이 발생할 수 있습니다.
  * 	- 따라서 해당 테이블을 다른 테이블과 조인할 때는 참조용으로 LEFT JOIN을 전제로 설계되었습니다.
 */
@@ -158,7 +158,7 @@ SELECT  COUNT(*) AS cnt
     OR  (is_multi_state = 1 AND state_cnt <= 1)
     OR  (is_invalid_latlng_exists = 1 AND invalid_latlng_cnt = 0);
 
--- 조인 정합성(1) -> customers에는 있지만 geolcation에는 없는 zip_code_prefix: 278건
+-- 조인 정합성(1) -> customers에는 있지만 geolocation에는 없는 zip_code_prefix: 278건
 SELECT  COUNT(*) AS orphan_cnt
   FROM  olist_stg.stg_customers AS c
   LEFT

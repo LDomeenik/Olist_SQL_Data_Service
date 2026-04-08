@@ -6,11 +6,11 @@
  * Description:
  * 	- 배송 완료 주문상품 기준 View
  * 	- 주문상품 단위 KPI 산출 시 배송 완료 조건을 일관되게 적용하기 위한 기준 View
- * 	- Grain: 1 row = 1 order item in 1 order id
+ * 	- Grain: 1 row = 1 order item per order id
  * 	- 필터 규칙:
  * 		- vw_delivered_orders에서 고정(배송 완료 기준)
  * 
- * Note:
+ * Notes:
  * 	- 해당 View는 필터 기준 고정과 KPI 쿼리 단순화가 목적이며, 매출 집계는 포함되지 않습니다.
  * 
  */
@@ -83,7 +83,7 @@ SELECT  COUNT(*) AS bad_dup_cnt
   		HAVING  COUNT(*) > 1
   		) AS t;
 
--- 배송완료 기준 재사용 검증 -> vw_delivered_orders에 존재하지 않는 order_id 포함 여부: 0
+-- 배송완료 기준 일관성 검증 -> vw_delivered_orders에 존재하지 않는 order_id 포함 여부: 0
 SELECT  COUNT(*) AS bad_cnt
   FROM  olist_dm.vw_delivered_order_items AS vdoi
   LEFT

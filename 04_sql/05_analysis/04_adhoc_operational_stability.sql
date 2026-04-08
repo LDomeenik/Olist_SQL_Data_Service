@@ -355,10 +355,10 @@ SELECT  dd.`year_month`
 SELECT  COALESCE(dp.product_category_name_en, 'unknown') AS cateogry
 		,COUNT(DISTINCT foi.order_id) AS total_orders
 		,COUNT(DISTINCT CASE WHEN fo.order_status = 'canceled' THEN foi.order_id END) AS canceled_orders
-		,COUNT(DISTINCT CASE WHEN fo.order_status = 'unavialable' THEN foi.order_id END) AS unavailable_orders
+		,COUNT(DISTINCT CASE WHEN fo.order_status = 'unavailable' THEN foi.order_id END) AS unavailable_orders
 		,COUNT(DISTINCT CASE WHEN fo.order_status IN ('canceled', 'unavailable') THEN foi.order_id END) AS failed_orders
 		,ROUND(COUNT(DISTINCT CASE WHEN fo.order_status = 'canceled' THEN foi.order_id END) / NULLIF(COUNT(DISTINCT foi.order_id), 0), 4) AS cancel_rate
-		,ROUND(COUNT(DISTINCT CASE WHEN fo.order_status = 'unvailable' THEN foi.order_id END) / NULLIF(COUNT(DISTINCT foi.order_id), 0), 4) AS unavailable_rate
+		,ROUND(COUNT(DISTINCT CASE WHEN fo.order_status = 'unavailable' THEN foi.order_id END) / NULLIF(COUNT(DISTINCT foi.order_id), 0), 4) AS unavailable_rate
 		,ROUND(COUNT(DISTINCT CASE WHEN fo.order_status IN ('canceled', 'unavailable') THEN foi.order_id END) / NULLIF(COUNT(DISTINCT foi.order_id), 0), 4) AS failed_rate
   FROM  olist_dm.fact_order_items AS foi
   JOIN  olist_dm.fact_orders AS fo
@@ -467,7 +467,7 @@ HAVING  COUNT(DISTINCT foi.order_id) >= 100
  * 		- 일부 도시에서 상대적으로 높은 취소율이 확인되었지만, 대부분 주문 규모가 100 ~ 200건 수준의 소규모 거래 지역에서 나타남
  * 			- governador valadares_MG(2.84%), itu_SP(2.22%), francisco morato_SP(2%) 등은 비교적 높은 취소율을 보이지만 전체 주문 수 00 ~ 200건, 취소 건수 2 ~ 4건 수준
  * 		- 플랫폼 주요 거래 도시인 sao paulo_SP(15,510건), rio de janeiro_RJ(6,843건), belo horizonte_MG(2,758건) 등은 취소율이 약 0.3% ~ 0.9% 수준으로 비교적 낮음 -> 대형 거래 지역에서는 전반적으로 안정적인 주문 구조 유지
- * 		- 일부 지역에서는 unavilable 주문이 cancel보다 더 많이 발생하는 사례도 관찰됨
+ * 		- 일부 지역에서는 unavailable 주문이 cancel보다 더 많이 발생하는 사례도 관찰됨
  * 			- 지역별 거래 실패는 단순한 취소 문제뿐 아니라 배송 또는 주문 처리 과정과 관련된 운영 요인의 영향을 받을 가능성
  * 
  * 	- 지역별 취소 기여도
@@ -487,7 +487,7 @@ SELECT  dc.customer_city_state AS city_state
 		,COUNT(DISTINCT fo.order_id) AS total_orders
 		,COUNT(DISTINCT CASE WHEN fo.order_status = 'canceled' THEN fo.order_id END) AS cancel_orders
 		,COUNT(DISTINCT CASE WHEN fo.order_status = 'unavailable' THEN fo.order_id END) AS unavailable_orders
-		,COUNT(DISTINCT CASE WHEN fo.order_status IN ('canceled', 'unavilable') THEN fo.order_id END) AS failed_orders
+		,COUNT(DISTINCT CASE WHEN fo.order_status IN ('canceled', 'unavailable') THEN fo.order_id END) AS failed_orders
 		,ROUND(COUNT(DISTINCT CASE WHEN fo.order_status = 'canceled' THEN fo.order_id END) / NULLIF(COUNT(DISTINCT fo.order_id), 0), 4) AS cancel_rate
 		,ROUND(COUNT(DISTINCT CASE WHEN fo.order_status = 'unavailable' THEN fo.order_id END) / NULLIF(COUNT(DISTINCT fo.order_id), 0), 4) AS unavailable_rate
 		,ROUND(COUNT(DISTINCT CASE WHEN fo.order_status IN ('canceled', 'unavailable') THEN fo.order_id END) / NULLIF(COUNT(DISTINCT fo.order_id), 0), 4) AS failed_rate

@@ -14,13 +14,13 @@
  * 	- Cohort Gross Revenue (해당 월 매출)
  * 	- Cohort Retention Rate (Active Buyers / Cohort Size)
  * 	- Cohort AOV (Gross Revenue / Order Count)
- * 	- Cumulative Gross Revenue (코호트 내 누적 매출)
- * 	- Cumulative Order Count (코호트 내 누적 주문 수)
+ * 	- Cumulative Gross Revenue (코호트 기준 누적 매출)
+ * 	- Cumulative Order Count (코호트 기준 누적 주문 수)
  * 
  * 코호트 기준:
  * 	- 코호트는 고객별 첫 구매 월(cohort_year_month) 기준으로 정의
  * 
- * Note:
+ * Notes:
  * 	- 해당 View는 Sparse View가 아닌 월 단위 Full 집계 View입니다.
  * 	- dim_date를 기준으로 year_month를 작성하였으며, 구매 데이터가 없는 월은 0 또는 NULL로 표시됩니다.
  * 	- cohort_size는 month_n=0(첫 구매 월) 구매자 수로 정의됩니다.
@@ -381,7 +381,7 @@ SELECT  COUNT(*) AS cnt
 		,SUM(month_n IS NULL) AS month_n_blank_cnt
   FROM  olist_am.vw_cohort_monthly_core;
 
--- 필수 컬럼(year_month, cohort_size, cohort_active_buyers, cohort_order_cnt, cohort_gorss_revenue) 결측 확인: 0건
+-- 필수 컬럼(year_month, cohort_size, cohort_active_buyers, cohort_order_cnt, cohort_gross_revenue) 결측 확인: 0건
 -- 	- cohort_aov와 cohort_retention_rate는 결측이 포함될 수 있음
 SELECT  SUM(`year_month` IS NULL) AS null_year_month
 		,SUM(cohort_size IS NULL) AS null_cohort_size

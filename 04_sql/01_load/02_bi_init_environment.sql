@@ -2,23 +2,23 @@
 
 
 /*
- * File: 04_adhoc_operational_stability.sql
+ * File: 02_bi_init_environment.sql
  * Description:
- * 	- 전체 주문 기준 플랫폼의 거래 안정성 분석
- * 	- 월별 거래 안정성 추이, 주문 상태 분포, 카테고리별 취소 위험, 지역별 취소 위험을 통해 취소 및 실패 주문이 구조적으로 집중되는지 여부를 진단
+ *  - BI Layer View 생성
+ *  - Growth / Drill Down / Customer / Operational 분석을 위한 통합 View 정의
+ * 	- 대시보드 및 분석용 데이터 구조 제공
  * 
  * Notes:
- * 	- 거래 안정성 분석은 Delivered 주문이 아닌 전체 주문을 기준으로 진행하였습니다.
- * 	- 핵심 지표는 cancel_rate, unavailable_rate, failed_rate(cancel + unavailable)입니다.
- * 	- 분석 기간은 왜곡 방지를 위해 2017-01 ~ 2018-08로 제한하였습니다.
- * 	- 카테고리 분석은 최소 주문수를 100 이상으로 설정하였습니다. (지나치게 미미한 영향의 카테고리 제외 목적)
+ * 	- section_type은 데이터 분류 기준으로 category / city_state / buyer_type 등으로 나뉩니다.
+ * 	- row_type은 BI 시각화용 데이터 유형 구분입니다.
+ * 	- buyer_type에서의 oter은 신규/재구매로 분류되지 않는 케이스로 데이터 정합성 보호 목적으로 설계하였습니다. 
  */
 
 
 /****************************************************************************************************************************************/
 
 
--- BI용 스케마 생성
+-- BI용 스키마 생성
 CREATE SCHEMA IF NOT EXISTS olist_bi;
 
 

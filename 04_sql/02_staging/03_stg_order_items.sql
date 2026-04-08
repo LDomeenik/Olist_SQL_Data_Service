@@ -5,10 +5,10 @@
  * File: 03_stg_order_items.sql
  * Description:
  * 	- Source 데이터: olist_raw.order_items
- *  - 주문 아이템(order_items) 단위의 Staging 테이블 생성
+ *  - 주문 상품(order_items) 단위의 Staging 테이블 생성
  * 	- 주문(order) 기준 조인 안전성 확보 및 분석용 타입 표준화 수행
- * 	- 날짜 컬럼과 가격 컬럼을 통해 파생 컬럼 생성 (날짜 단위 컬럼(shipping_limit_dt/date) / 주문 아이템의 총 가격 컬럼(item_total_value))
- * 	- 
+ * 	- 날짜 컬럼과 가격 컬럼을 통해 파생 컬럼 생성 (날짜 단위 컬럼(shipping_limit_dt/date) / 주문 상품의 총 가격 컬럼(item_total_value))
+ *
  * Notes:
  * 	- order_id와 order_item_id를 결합하여 PK를 생성하였습니다.
  * 	- 식별자 성격을 지닌 ID 컬럼(order_id, order_item_id, product_id, seller_id)은 NOT NULL을 적용하였습니다.

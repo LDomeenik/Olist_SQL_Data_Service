@@ -11,9 +11,9 @@
  * 		- order_status = 'delivered'
  * 		- is_delivered = 1
  * 
- * Note:
+ * Notes:
  * 	- 해당 View는 필터 기준 고정과 KPI 쿼리 단순화가 목적이며, 매출 집계는 포함되지 않습니다.
- * 	- 배송 완료 여부를 필터링 하기 위해 order_status='delivered'인 조건과 order_status와 실제 배송 완료 여부(시간)이 일치하지 않는 경우를 방지하기 위해 is_delivered=1 조건을 걸었습니다.
+ * 	- 배송 완료 여부를 필터링 하기 위해 order_status='delivered'인 조건과 order_status와 실제 배송 완료 여부(시간)이 일치하지 않는 경우를 방지하기 위해 is_delivered=1 조건을 적용하였습니다.
  * 
  */
 

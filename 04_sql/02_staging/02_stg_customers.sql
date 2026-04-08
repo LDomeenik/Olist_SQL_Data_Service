@@ -7,6 +7,7 @@
  * 	- Source 데이터: olist_raw.customers
  *  - 고객 키(customer_id / customer_unique_id) 기준 조인 안전성 확보
  * 	- 지역 컬럼(city/state/zip_code) 표준화
+ * 
  * Notes:
  * 	- customer_id는 orders.customer_id의 조인 키이므로 PK로 사용하였습니다.
  * 	- 모든 컬럼에 결측치가 발견되지 않았으나, 추가 데이터 유입 시 데이터 손실을 막기 위해 지역 속성 컬럼(zip/city/state)은 NULL을 허용하였습니다.
@@ -120,7 +121,7 @@ CREATE TABLE olist_stg.stg_customers (
 	-- 결합 컬럼
 	customer_city_state		  VARCHAR(200) NULL,
 	
-	-- PK 및 Indexs 지정
+	-- PK 및 Indexes 지정
 	PRIMARY KEY (customer_id),
 	INDEX idx_stg_customers_unique_id (customer_unique_id),
 	INDEX idx_stg_customers_zip_prefix (customer_zip_code_prefix),
@@ -132,7 +133,7 @@ CREATE TABLE olist_stg.stg_customers (
 -- 	- customer_city: LOWER(TRIM(REPLACE('\r', ''))): 공백, 줄 바꿈 제거 및 소문자로 표준화
 -- 	- customer_state: UPPER(TRIM(REPLACE('\r', ''))): 공백, 줄 바꿈 제거 및 대문자로 표준화
 -- 	- 사전 DQ 상 결측 0건이었으나, 운영 확장 가능성을 고려해 속성 컬럼은 NULL 허용
--- 	- customer_city_state는 "-"를 통해 연결
+-- 	- customer_city_state는 "_"를 통해 연결
 TRUNCATE TABLE olist_stg.stg_customers;
 
 
@@ -172,7 +173,7 @@ SELECT  *
 -- 데이터 타입
 DESCRIBE olist_stg.stg_customers;
 
--- 행 수 확인: raw.orders: 99,441 행 / stg_customers: 99,441 행
+-- 행 수 확인: raw.customers: 99,441 행 / stg_customers: 99,441 행
 SELECT  (SELECT COUNT(*) FROM olist_raw.customers) AS raw_cnt
 		,(SELECT COUNT(*) FROM olist_stg.stg_customers) AS stg_cnt;
 

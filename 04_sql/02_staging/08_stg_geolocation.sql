@@ -10,6 +10,7 @@
  * 	- 문자열 컬럼(geolocation_city / geolocation_state) 표준화 (TRIM, REPLACE 적용 / 타입 변환)
  * 	- 지도/지역 분석을 위한 대표 좌표(lat/lng) 및 대표 도시/주(city/state) 산출
  * 	- 품질 지표/플래그 컬럼 생성 (invalid 좌표 존재 여부 / 복수 state 매핑 여부)
+ * 
  * Notes:
  * 	- geolocation_zip_code_prefix를 PK로 사용하였습니다.
  * 	- PK 컬럼인 geolocation_zip_code_prefix와 집계/플래그 컬럼은 NOT NULL을 지정하였습니다.
@@ -552,7 +553,7 @@ SELECT  COUNT(*) AS inconsistent_no_valid_latlng
     OR  (mode_cnt > 0 AND (geolocation_lat IS NULL OR geolocation_lng IS NULL));
 
 -- mode_ratio_pct가 낮은 zip_prefix -> 83252, 18243, 95130, 78131은 0%
--- 	- mode_ratio_pct가 5%보다 낮은 건수: 19,015,건 중 2,888건 (15.19%)
+-- 	- mode_ratio_pct가 5%보다 낮은 건수: 19,015건 중 2,888건 (15.19%)
 SELECT  geolocation_zip_code_prefix
 		,row_cnt
 		,mode_cnt

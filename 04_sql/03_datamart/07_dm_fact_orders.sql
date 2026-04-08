@@ -7,7 +7,7 @@
  * 	- Operations Data Mart Fact 테이블(fact_orders) 생성 및 적재
  * 	- Grain: 1 row = 1 order_id
  * 
- * Note:
+ * Notes:
  * 	- 해당 fact_orders 테이블은 Operations Data Mart에서 Fact 테이블로 사용되는 테이블입니다.
  * 	- Source로 사용된 테이블과 컬럼은 다음과 같습니다.
  * 		- olist_stg.stg_orders (base 테이블)
@@ -70,7 +70,7 @@ COLLATE=utf8mb4_0900_ai_ci;
 /*
  * ETL: fact_orders
  * 	- stg 레이어의 stg_orders를 복사
- * 	- stg 레이어의 customers와 조인하여 customer_zip_code_prefix를 복사 및 생성
+ * 	- stg 레이어의 customers와 조인하여 customer_zip_code_prefix를 조인하여 컬럼 생성
 */
 
 TRUNCATE TABLE olist_dm.fact_orders;
@@ -123,7 +123,7 @@ SELECT  so.order_id
  * 	- PK 유니크 -> cnt: 99,441 / distinct_cnt: 99,441 / 중복: 0건 / 결측 및 공백: 0건
  * 	- FK 컬럼의 결측치(customer_id/order_purchase_date_key/order_status/order_purchase_dt): 0건
  * 	- 조인 정합성: geolocation과의 조인 정합성은 orphan_cnt가 1 이상이어도 이상치라고 볼 수 없음(원본 데이터 커버리지의 한계) / 그 외의 orphan_cnt는 0이어야 함 (geolocation 관련 상세 조인 정합 비율은 dm_QC_all 스크립트에서 관리)
- * 		-> fact_orders에는 있지만 dim_customers에는 없는 고객: 0건
+ * 		-> fact_orders에는 있지만 dim_customer에는 없는 고객: 0건
  * 		-> fact_orders에는 있지만 dim_date에는 없는 주문 날짜: 0건
  * 		-> fact_orders에는 있지만 dim_geolocation에는 없는 customer_zip_code_prefix: 278건
 */
@@ -155,7 +155,7 @@ SELECT  SUM(customer_id IS NULL) AS null_customer_cnt
 		,SUM(order_purchase_dt IS NULL) AS null_purchase_dt_cnt
   FROM  olist_dm.fact_orders;
 
--- 조인 정합성(1) -> fact_orders에는 있지만 dim_customers에는 없는 고객: 0건
+-- 조인 정합성(1) -> fact_orders에는 있지만 dim_customer에는 없는 고객: 0건
 SELECT  COUNT(*) AS orphan_customer_cnt
   FROM  olist_dm.fact_orders AS fo
   LEFT

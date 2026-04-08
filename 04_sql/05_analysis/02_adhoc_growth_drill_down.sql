@@ -199,7 +199,9 @@ SELECT  p.category
 		,p.rev_drop
 		,(p.rev_drop - p.rev_growth) / NULLIF(p.rev_growth, 0) AS drop_rate
 		,(p.rev_drop - p.rev_growth) AS rev_diff
-		,ABS(p.rev_drop - p.rev_growth) / NULLIF(ABS(t.total_drop - t.total_growth), 0) AS contrib_to_total_drop
+		,CASE WHEN (p.rev_drop - p.rev_growth) < 0 THEN ABS(p.rev_drop - p.rev_growth) / NULLIF(ABS(t.total_drop - t.total_growth), 0) 
+			  ELSE 0
+			  END AS contrib_to_total_drop
   FROM  pivot AS p
  CROSS
   JOIN  tot AS t

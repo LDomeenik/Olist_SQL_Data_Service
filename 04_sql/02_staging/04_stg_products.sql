@@ -9,13 +9,13 @@
  * 	- 상품 번호(product_id) 기준 조인 안전성 확보 및 분석용 타입 표준화 수행
  * 	- product_category_name_translation과 조인하여 product_category_name_en 컬럼을 포함
  * 	- 정합성 위반 row에 대하여 플래그 컬럼 생성
- * 	- 
+ *
  * Notes:
  * 	- product_id를 PK로 사용하였습니다.
  * 	- 식별자 성격을 지닌 ID 컬럼(product_id)은 NOT NULL을 적용하였습니다.
  * 	- 그 외의 컬럼에 대하여는 NULL을 허용하였습니다. (추후 데이터 확장 고려)
  * 	- product_category_name에 결측(공백)이 발견되어 플래그 컬럼을 생성하였습니다. (is_category_blank)
- * 	- product_category_name_en 조인 결과가 결측인 경우 그대로 결측으로 
+ * 	- product_category_name_en 조인 결과가 결측인 경우 그대로 결측으로 유지하였습니다.
  * 	- product_weight_g = 0인 row 중 이상치가 확인되어 플래그 컬럼을 생성하였습니다. (is_weight_zero)
  * 	- 치수 결측은 삭제 및 보정하지 않고 product_volume_cm3을 조건부 계산하여 NULL로 유지합니다.
  */
@@ -81,7 +81,7 @@ SELECT  *
     OR  TRIM(product_category_name) = '';
 
 -- 숫자 컬럼 분포
--- products_name_length -> null_cnt: 610건 / negative_cnt: 0건 / zero_cnt: 0건 / 최솟값: 5 / 최댓값: 76
+-- product_name_length -> null_cnt: 610건 / negative_cnt: 0건 / zero_cnt: 0건 / 최솟값: 5 / 최댓값: 76
 SELECT  SUM(product_name_length IS NULL) AS name_null_cnt
 		,SUM(product_name_length < 0) AS name_negative_cnt
 		,SUM(product_name_length = 0) AS name_zero_cnt

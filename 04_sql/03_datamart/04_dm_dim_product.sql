@@ -7,10 +7,10 @@
  * 	- Sales Data Mart 제품 정보 차원 생성 (source: olist_stg.stg_products)
  * 	- Grain: 1 row = 1 product_id
  * 
- * Note:
+ * Notes:
  * 	- 해당 dim_product 테이블은 Sales Mart에서 dimension 테이블로 사용되는 차원 테이블입니다.
  * 	- stg_products의 집계/로직을 그대로 가져왔습니다. (추가적인 집계/로직 없음)
- * 	- 따라서 DQ, QC의 경우. 이미 품질 검사가 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
+ * 	- 따라서 DQ, QC는 이미 Staging 레이어에서 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
 */
 
 
@@ -103,7 +103,7 @@ SELECT  product_id
 
 /*
  * QC: dim_product
- * 	- row count: 32,951건 (stg_product: 32,951)
+ * 	- row count: 32,951건 (stg_products: 32,951)
  * 	- PK 유니크 -> cnt: 32,951 / distinct_cnt: 32,951 / 중복: 0건 / 결측 및 공백: 0건
  * 	- stg와 dm의 주요 컬럼 값 불일치 건수: 0건
  * 	- 플래그 일관성 -> 플래그와 실제 값이 다른 건수: 0건

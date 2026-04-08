@@ -7,10 +7,10 @@
  * 	- Sales Data Mart 판매자 정보 차원 생성 (source: olist_stg.stg_sellers)
  * 	- Grain: 1 row = 1 seller_id
  * 
- * Note:
+ * Notes:
  * 	- 해당 dim_seller 테이블은 Sales Mart에서 dimension 테이블로 사용되는 차원 테이블입니다.
  * 	- stg_sellers의 집계/로직을 그대로 가져왔습니다. (추가적인 집계/로직 없음)
- * 	- 따라서 DQ, QC의 경우, 이미 품질 검사가 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
+ * 	- 따라서 DQ, QC는 이미 Staging 레이어에서 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
 */
 
 
@@ -50,7 +50,7 @@ COLLATE=utf8mb4_0900_ai_ci;
 
 /*
  * ETL: dim_seller
- * 	- stg 레이어의 stg_sellers를 복사
+ * 	- stg 레이어의 stg_sellers 데이터를 그대로 적재
 */
 
 

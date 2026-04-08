@@ -10,6 +10,7 @@
  * 	- 문자열 컬럼(review_comment_title / review_comment_message) 표준화 (TRIM/REPLACE 적용 / 완전 공백은 NULL로 변환)
  * 	- 시간 컬럼(review_creation_date / review_answer_timestamp)은 DATETIME 파싱 및 DATE 파생 컬럼 생성
  * 	- 문자열 공백 여부는 row-level 플래그로 관리 (is_title_blank / is_message_blank)
+ * 
  * Notes:
  * 	- review_id와 order_id를 결합하여 복합 PK로 사용하였습니다.
  * 	- 식별자 성격을 지닌 ID 컬럼(review_id / order_id)와 필수 컬럼인 review_score는 NOT NULL을 적용하였습니다.
@@ -91,7 +92,7 @@ SELECT  review_cnt
  ORDER
     BY  review_cnt;
 
--- (reveiw_id, order_id) 유니크 확인 (복합 PK 가능 여부) -> 중복값: 0건
+-- (review_id, order_id) 유니크 확인 (복합 PK 가능 여부) -> 중복값: 0건
 SELECT  COUNT(*) AS dup_cnt
   FROM  (
   		SELECT  review_id
@@ -105,7 +106,7 @@ SELECT  COUNT(*) AS dup_cnt
 
 -- 기타 컬럼 중복 및 결측 확인(문자열)
 -- review_comment_title 공백 및 결측치: 87,658건(NULL: 0건 / 공백: 87,658건)
-SELECT  SUM(review_comment_title IS NULL OR LOWER(TRIM(REPLACE(review_comment_title, '\r', ''))) = '') AS total_unkonwn_cnt
+SELECT  SUM(review_comment_title IS NULL OR LOWER(TRIM(REPLACE(review_comment_title, '\r', ''))) = '') AS total_unknown_cnt
 		,SUM(review_comment_title IS NULL) AS null_cnt
 		,SUM(LOWER(TRIM(REPLACE(review_comment_title, '\r', ''))) = '') AS blank_cnt
   FROM  olist_raw.order_reviews;

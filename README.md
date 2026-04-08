@@ -2,6 +2,53 @@
 # Olist SQL Data Service
 
 
+```
+본 프로젝트는 e-commerce 플랫폼의 매출 변동 원인을 구조적으로 분석합니다.
+
+Raw → Staging → Data Mart → Analytics Layer까지 데이터 환경을 설계하고,
+BI 레이어 및 Tableau 대시보드를 구축하여 분석 결과를 시각화하였습니다.
+
+핵심 분석 결과는 다음과 같습니다.
+
+- 매출 급락 원인: 신규 고객 유입 감소
+  
+- 성장 구조: 고객 가치 상승이 아닌 거래량(특히 신규 구매자) 기반
+  
+- 핵심 문제: acquisition 중심 구조로 인한 매출 변동성
+  
+- 결론: 매출 감소는 운영 문제가 아닌 수요 축소 문제
+  
+- 해결 방향: Acquisition Funnel 최적화 + Retention 전략 강화
+
+
+분석에서 사용한 도구는 아래와 같습니다.
+
+- 데이터 환경 설계 및 분석: MySQL
+- 대시보드: Tableau
+```
+
+- **Growth Structure**
+	- 매출 변동의 KPI 구조 분해 (Revenue = Buyers x Orders x AOV)
+	→ [View SQL](./04_sql/05_analysis/01_adhoc_growth_structure.sql)
+
+- **Growth Drill Down**
+	- 2017-11 → 2017-12 급락 구간 원인 분석
+	→ [View SQL](./04_sql/05_analysis/02_adhoc_growth_drill_down.sql)
+
+- **Customer Value Structure**
+	- 고객 가치 구조 및 분포/집중도 분석
+	→ [View SQL](./04_sql/05_analysis/03_customer_value_structure.sql)
+
+- **Operational Stability**
+	- 주문 상태 기반 거래 안정성 분석
+	→ [View SQL](./04_sql/05_analysis/04_adhoc_operational_stability.sql)
+
+- **Tableau Dashboard**
+	→ [View Dashboard PDF](./03_dashboard/00_Dashboard_Tableau.pdf)
+
+
+---
+
 ## Project 개요
 
 
@@ -30,6 +77,9 @@
 고객 유지(리텐션) 전략 강화와 충성 고객 확보가 핵심 과제로 판단됩니다.
 
 
+관련 문서: [View Docs](./01_docs/Analysis_Plan.md)
+
+
 ---
 
 ## 데이터 Source
@@ -39,7 +89,7 @@
 
 - Dataset: Brazilian E-Commerce Public Dataset by Olist
 - 출처: Kaggle (https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
-- 데이터 기간: 2016-09 ~ 2020-04
+- 원천 데이터 기간: 2016-09 ~ 2020-04
 - 분석 활용 기간: 2017-01 ~ 2018-08 (이상치 및 거래량 왜곡 구간 제외)
 
 해당 데이터는 이커머스 플랫폼의 주문 단위 트랜잭션 데이터를 중심으로
@@ -190,6 +240,8 @@
 		- 취소와 미처리를 합한 주문 실패 비율
 
 
+관련 문서: [View Docs](./01_docs/KPI_Definition.md)
+
 ---
 
 ## Data Architecture
@@ -230,7 +282,14 @@
 		- vw_base_customer_monthly_purchase: 고객 단위 월별 구매 데이터
 		- vw_customer_first_purchase_month: 고객 최초 구매 기준 데이터
 
+
+관련 문서: [View Docs (raw/stg./dm)](./01_docs/Data_Specification.md)
+		 [View Docs (dm 설계)](./01_docs/Data_mart_design.md)
+		 [View Docs (am)](./01_docs/Analysis_Module.md)
+
+
 ![sales_data_mart_erd.png](02_images/02_sales_data_mart_erd.png)
+
 
 ![operations_data_mart_erd.png](02_images/03_operations_data_mart_erd.png)
 
@@ -273,6 +332,9 @@
 	- 매출 급락 구간에서도 운영 지표의 이상 증가 없음
 
 본 분석을 통해, 매출 변화의 핵심은 고객 유입 및 활성 기반임을 확인하였습니다.
+
+
+관련 문서: [View Docs](./01_docs/Analysis_Insights.md)
 
 
 ---
@@ -321,7 +383,7 @@
 	- Upsell / Cross-sell 전략 도입
 
 4. **지속적인 모니터링 체계 구축**
-	- KPI 기반 대시보드를 통한 실시간 모니터링
+	- 보조적으로 KPI 기반 대시보드를 통한 실시간 모니터링
 	- 이상 구간 발생 시 Drill Down 분석 프로세스 적용
 
 
@@ -329,11 +391,18 @@
 고객 유지율이 낮아 장기적인 성장 안정성이 부족한 상태입니다.
 따라서, 유입 중심 성장에서 리텐션 중심 구조로 전환하는 것이 핵심 과제입니다.
 
+
+관련 문서: [View Docs](./01_docs/Key_Insights_Action_Plan.md)
+
+
 ![Growth Structure Dashboard.png](02_images/04_Growth_Structure_Dashboard.png)
+
 
 ![Growth Drill Down Dashboard.png](02_images/05_Growth_Drill_Down_Dashboard.png)
 
+
 ![Customer Value Structure Dashboard.png](02_images/06_Customer_Value_Structure_Dashboard.png)
+
 
 ![Operational Stability Dashboard.png](02_images/07_Operational_Stability_Dashboard.png)
 

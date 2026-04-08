@@ -7,7 +7,7 @@
  * 	- Sales Mart Fact 테이블(fact_order_items) 생성 및 적재
  * 	- Grain: 1 row = 1 order item in 1 order
  * 
- * Note:
+ * Notes:
  * 	- 해당 fact_order_items 테이블은 Sales Mart에서 Fact 테이블로 사용되는 테이블입니다.
  * 	- Source로 사용된 테이블과 컬럼은 다음과 같습니다.
  * 		- olist_stg.stg_order_items (base 테이블)
@@ -73,7 +73,7 @@ COLLATE=utf8mb4_0900_ai_ci;
 /*
  * ETL: fact_order_items
  * 	- stg 레이어의 stg_order_items를 복사
- * 	- stg 레이어의 orders와 조인하여 customer_id, order_purchase_date_key를 복사 및 생성
+ * 	- stg 레이어의 orders와 조인하여 customer_id, order_purchase_date_key를 조인하여 컬럼 생성
  * 	- stg 레이어의 stg_customers와 조인하여 customer_zip_code_prefix를 복사
  * 	- stg 레이어의 stg_sellers와 조인하여 seller_zip_code_prefix를 복사
 */
@@ -123,7 +123,7 @@ SELECT  soi.order_id
 
 /*
  * QC: fact_order_items
- * 	- row count: 112,650건 (stg_sellers: 112,650)
+ * 	- row count: 112,650건 (stg_order_items: 112,650)
  * 	- PK 유니크 -> cnt: 112,650 / distinct_cnt: 112,650 / 중복: 0건 / 결측 및 공백: 0건
  * 	- FK 컬럼의 결측치(order_purchase_date_key/customer_id/product_id/seller_id/customer_zip_code_prefix/seller_zip_code_prefix): 0건
  * 	- 조인 정합성: geolocation과의 조인 정합성은 orphan_cnt가 1 이상이어도 이상치라고 볼 수 없음(원본 데이터 커버리지의 한계) / 그 외의 orphan_cnt는 0이어야 함 (geolocation 관련 상세 조인 정합 비율은 dm_QC_all 스크립트에서 관리)

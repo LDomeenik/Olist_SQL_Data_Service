@@ -7,10 +7,10 @@
  * 	- Data Mart 공용 고객 정보 차원 생성 (source: olist_stg.stg_customers)
  * 	- Grain: 1 row = 1 customer_id
  * 
- * Note:
+ * Notes:
  * 	- 해당 dim_customer 테이블은 Sales Mart와 Operations Mart에서 모두 dimension 테이블로 사용되는 공용 차원 테이블입니다.
  * 	- stg_customers의 집계/로직을 그대로 가져왔습니다. (추가적인 집계/로직 없음)
- * 	- 따라서 DQ, QC의 경우. 이미 품질 검사가 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
+ * 	- 따라서 DQ, QC는 이미 Staging 레이어에서 완료된 데이터이기 때문에 기본적인 적재 정합성만을 확인합니다.
 */
 
 

@@ -56,7 +56,7 @@ SELECT  *
 
 -- 월별 평균 가치 KPI
 
--- year_month		gross_revenue		order_cnt		acitve_buyers		aov				arpb		orders_per_buyers
+-- year_month		gross_revenue		order_cnt		active_buyers		aov				arpb		orders_per_buyers
 -- =============================================================================================================================
 -- 2017-01			  127482.37			   750				718			   169.98		 177.552047			1.0446
 -- 2017-02			  271239.32			   1653				1630		   164.09		 166.404491			1.0141

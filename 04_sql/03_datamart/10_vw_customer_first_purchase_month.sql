@@ -7,15 +7,15 @@
  * 	- 고객별 첫 구매 월(cohort month)을 정의하는 기준 View
  * 	- 코호트 분석 및 월차 리텐션 분석의 기준점(first_purchase_month)을 제공
  * 	- 이후 코호트/리텐션/KPI View에서 공통 기준으로 재사용
- * 	- 첫 구매 월 정의는 배송이 완료된 고객들에 한해서 정의
+ * 	- 첫 구매 월은 배송 완료 주문 기준으로 정의
  * 
  * 코호트 기준 정의:
  * 	- 배송 완료 주문(vw_delivered_orders)만을 대상으로 첫 구매를 정의
  * 	- 고객 식별 기준은 customer_unique_id
  *  - 고객별 최초 구매 일자는 MIN(order_purchase_date_key)로 정의
- * 	- 최초 구매 월은 dim_date.year_month 기준으로 정의
+ * 	- 최초 구매 월은 dim_date.year_month 기준으로 산출
  * 
- * Note:
+ * Notes:
  * 	- 해당 View는 고객별 첫 구매 월을 정의하는 목적으로 매출/주문 수 등 KPI 집계를 수행하지 않습니다.
  * 	- 또한 같은 목적으로 최소 컬럼만을 포함하고 있습니다. (첫 구매 기준을 배송 완료 기준으로 고정함으로써 KPI 산출 조건과의 불일치를 방지)
  * 	- vw_delivered_orders를 기준 집합으로 사용하여 배송 완료 조건을 일관되게 유지하고 있습니다.

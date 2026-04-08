@@ -8,6 +8,7 @@
  *  - 판매자(seller) 단위의 Staging 테이블 생성
  * 	- 판매자 식별자(seller_id) 기준 조인 안전성 확보 및 분석용 타입 표준화 수행
  * 	- 판매자 위치 정보를 통합한 파생 컬럼 생성(seller_city_state)
+ * 
  * Notes:
  * 	- seller_id를 PK로 사용하였습니다.
  * 	- 식별자 성격을 지닌 ID 컬럼(seller_id)은 NOT NULL을 적용하였습니다.

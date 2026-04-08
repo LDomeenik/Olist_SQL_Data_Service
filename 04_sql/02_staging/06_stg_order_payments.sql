@@ -5,10 +5,11 @@
  * File: 06_stg_order_payments.sql
  * Description:
  * 	- Source 데이터: olist_raw.order_payments
- *  - 주문 결제(order_payment) 단위의 Staging 테이블 생성
+ *  - 주문 결제(order_payments) 단위의 Staging 테이블 생성
  * 	- 주문 식별자(order_id) 기준 조인 안전성 확보  
  * 	- 문자열 컬럼(payment_type) 표준화(LOWER / TRIM 적용)
  * 	- 정합성 위반 row는 삭제하지 않고 플래그로 관리 (is_installments_zero / is_payment_value_zero)
+ * 
  * Notes:
  * 	- order_id와 payment_sequential을 결합하여 복합 PK로 사용하였습니다.
  * 	- 식별자 성격을 지닌 ID 컬럼(order_id)과 복합 PK로 사용한 payment_sequential은 NOT NULL을 적용하였습니다.

@@ -96,7 +96,7 @@ Analysis Module에서 사용될 사실 데이터는 아래와 같습니다.
 
 Analysis Module에서 사용될 기준 데이터는 아래와 같습니다.
 
-- vw_delivered_orders (배송인 완료된 주문 데이터)
+- vw_delivered_orders (배송이 완료된 주문 데이터)
 - vw_delivered_order_items (배송이 완료된 주문상품 데이터)
 - vw_customer_first_purchase_month (고객별 첫 구매 연-월 데이터)
 ```

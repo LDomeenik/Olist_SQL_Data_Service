@@ -16,14 +16,14 @@
  *	- Repeat Buyers (월 기준 반복 구매 고객 수)
  *	- Repeat Buyer Rate (월 기준 반복 구매 고객 비율)
  * 
- * Note:
- * 	- 해당 View는 Sparse View가 아닌 월 단위 Full 집계 View입니다.
- * 	- dim_date를 기준으로 year_month를 작성하였으며, 주문 완료된 건수가 없는 월은 0 또는 NULL로 표시됩니다.
+ * Notes:
+ * 	- 해당 View는 Sparse View 구조가 아닌 월 단위 Full 집계 View입니다.
+ * 	- dim_date를 기준으로 year_month를 작성하였으며, 완료된(delivered) 주문이 없는 월은 0 또는 NULL로 표시됩니다.
  * 	- 매출/주문/구매자 KPI는 배송 완료 주문을 기준으로 집계하였습니다.
- * 	- repeat buyer는 해당 월 구매 고객 중 cohort_month < year_month인 고객 수로 정의하였습니다.
- * 	- repeat buyer rate는 repeat_buyers / active_buyers (0~1) 비율로 저장하였습니다.
+ * 	- Repeat Buyer는 해당 월 구매 고객 중 cohort_month < year_month인 고객 수로 정의하였습니다.
+ * 	- Repeat Buyer Rate는 repeat_buyers / active_buyers (0~1) 비율로 저장하였습니다.
  * 	- 월별 재구매율은 월 기준 repeat buyer 비중이며, 전체 기간 기준 재구매율과는 다릅니다.
- * 	- 전체 기간 기준 재구매율은 BI 툴에서 직접 계산으로 다루어야 합니다.
+ * 	- 전체 기간 기준 재구매율은 BI 툴에서 별도로 계산해야 합니다.
  */
 
 

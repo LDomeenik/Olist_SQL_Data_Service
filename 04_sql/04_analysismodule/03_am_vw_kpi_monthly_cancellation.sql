@@ -11,20 +11,20 @@
  * 포함 KPI:
  * 	- Total Orders (전체 주문 수)
  * 	- Canceled Orders (취소 주문 수)
- * 	- Unavailable Orders (미수/거래 실패 주문 수)
- * 	- Failed Orders (취소 + 미수 주문 수)
+ * 	- Unavailable Orders (미배송/처리 불가 주문 수)
+ * 	- Failed Orders (취소 + 실패율 주문 수)
  * 	- Cancel Rate (취소율)
- * 	- Unavailable Rate (미수율)
- * 	- Failed Rate (취소+미수율)
+ * 	- Unavailable Rate (실패율)
+ * 	- Failed Rate (취소 + 실패율)
  * 
- * Note:
+ * Notes:
  * 	- 해당 View는 Sparse View가 아닌 월 단위 Full 집계 View입니다.
  * 	- dim_date를 기준으로 year_month를 작성하였으며, 주문 완료된 건수가 없는 월은 0 또는 NULL로 표시됩니다.
  * 	- 전체 주문은 배송 완료 필터를 적용하지 않았습니다.
- * 	- 취소 주문은 order_status = 'canceled' 기준 / 미수 주문은 order_status = 'unavailable' 기준을 적용했습니다.
- * 	- 참고용 지표로 두 경우를 모두 포함한 failed orders를 작성하였습니다.
+ * 	- 취소 주문은 order_status = 'canceled' 기준 / 미배송/처리 불가 주문은 order_status = 'unavailable' 기준을 적용했습니다.
+ * 	- 참고용 지표로 취소와 실패를 모두 포함한 failed orders를 작성하였습니다.
  * 	- 각 비율 KPI는 상태별 주문 수 / 전체 주문 수 (0~1)로 계산하였습니다.
- * 	- 원본 데이터 초기와 말미(2016-08~09/2018-09~12)는 표본 수가 매우 작을 수 있어 비율 KPI가 급격히 변동될 수 있으므로 해석 시 주의가 필요합니다.
+ * 	- 원본 데이터 초기와 말미(2016-08~09/2018-09~12)는 표본 수가 매우 적을 수 있어 비율 KPI가 급격히 변동될 수 있으므로 해석 시 주의가 필요합니다.
  */
 
 
@@ -147,7 +147,7 @@ SELECT  SUM(unavailable_orders) AS am_unavailable_orders
 SELECT  COUNT(DISTINCT CASE WHEN order_status = 'unavailable' THEN order_id END) AS dm_unavailable_orders
   FROM  olist_dm.fact_orders;
 
--- 월별 취소/미수 주문 총합: 1,234건 (fact_orders의 취소/미수 주문 총합과 동일])
+-- 월별 취소/미배송/처리불가 주문 총합: 1,234건 (fact_orders의 취소/미배송/처리불가 주문 총합과 동일])
 SELECT  SUM(failed_orders) AS am_failed_orders
   FROM  olist_am.vw_kpi_monthly_cancellation;
 

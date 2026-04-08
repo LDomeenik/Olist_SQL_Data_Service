@@ -8,13 +8,13 @@
  * 	- Grain: 1 row = 1 day
  * 	- ISO 주차/요일 기준 적용
  * 
- * Note:
+ * Notes:
  * 	- 해당 dim_date 테이블은 Sales Mart와 Operations Mart에서 모두 dimension 테이블로 사용되는 공용 차원 테이블입니다.
- * 	- source 테이블 없이 캘린더를 생성한 테이블입니다. (1 row = 1 day)
+ * 	- source 테이블 없이 생성한 캘린더 테이블입니다. (1 row = 1 day)
  * 	- dim_date의 범위를 다음과 같이 고정하였습니다.
  * 		- 시작일: 주문 관련 주요 날짜 컬럼들의 최소값 - 1 달
  * 		- 종료일: 주문 관련 주요 날짜 컬럼들의 최대값 + 1 달
- * 	- 캘린더 날짜를 기준으로 1 row 당 날짜의 파생 컬럼들을 생성하였습니다. (year/quarter/month/week_of_year/day/day_or_week)
+ * 	- 캘린더 날짜를 기준으로 1 row 당 날짜의 파생 컬럼들을 생성하였습니다. (year/quarter/month/week_of_year/day/day_of_week)
  * 	- 이후 분석의 용이성을 위해 플래그 컬럼을 통해 주중/주말 여부와 월의 시작/끝 여부를 파악하였습니다. (is_weekend / is_month_start / is_month_end)
 */
 

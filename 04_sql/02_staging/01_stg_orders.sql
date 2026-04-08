@@ -9,6 +9,7 @@
  *  - 주문 시간 파생 컬럼 + 배송/승인 리드타임 파생 컬럼 생성 
  *  - order_status 컬럼에 대하여 표준화 적용
  * 	- 정합성 위반/결측은 삭제하지 않고 플래그로 파생 컬럼 생성
+ * 
  * Notes:
  * 	- order_purchase_dt는 이후 분석에서 필수적으로 활용되므로 파싱 실패 row는 적재 대상에서 제외하였습니다.
  *  - order_status는 LOWER + TRIM만 적용하여 표준화하였습니다.
@@ -24,7 +25,7 @@ USE olist_stg;
 
 /*
  * orders 테이블 사전 DQ:
- *  - Raw 데이터의 유일성/결측/포멧 상태를 확인
+ *  - Raw 데이터의 유일성/결측/포맷 상태를 확인
  *  - Staging ETL에서의 허용 기준 설정
  * Notes:
  * 	- orders 테이블을 stg 레이어에 ETL 하기 전 ETL 기준을 설정하기 위한 스크립트입니다.
@@ -72,7 +73,7 @@ SELECT  COUNT(*) AS purchase_parse_fail_cnt
   FROM  olist_raw.orders
  WHERE  STR_TO_DATE(REPLACE(order_purchase_timestamp, '\r', ''), '%Y-%m-%d %H:%i:%s') IS NULL;
 
--- 기타 시간 관련 컬럼 파싱 싪패 건수 (0 / 0 / 0 / 0 건)
+-- 기타 시간 관련 컬럼 파싱 실패 건수 (0 / 0 / 0 / 0 건)
 SELECT  SUM(order_approved_at <> '' AND STR_TO_DATE(REPLACE(order_approved_at, '\r', ''), '%Y-%m-%d %H:%i:%s') IS NULL) AS approved_parse_fail_cnt
 		,SUM(order_delivered_carrier_date <> '' AND STR_TO_DATE(REPLACE(order_delivered_carrier_date, '\r', ''), '%Y-%m-%d %H:%i:%s') IS NULL) AS carrier_parse_fail_cnt
 		,SUM(order_delivered_customer_date <> '' AND STR_TO_DATE(REPLACE(order_delivered_customer_date, '\r', ''), '%Y-%m-%d %H:%i:%s') IS NULL) AS customer_parse_fail_cnt
@@ -102,10 +103,10 @@ SELECT  *
  LIMIT  10;
 
 -- 배송 상태와 시간 사이의 이상치
--- 배송 완료된 상품인데 배송 완료 시각이 없는 상품 건수: 8 건
--- 취소된 상품인데 배송 완료 시각이 있는 상품 건수: 6 건
--- 결제 승인된 상품인데 결제 승인 시각이 없는 상품 건수: 0건
--- 배송중이거나 송장 발행된 상품인데 배송 시각이 없는 상품 건수: 314 건
+-- 배송 완료된 주문인데 배송 완료 시각이 없는 주문 건수: 8 건
+-- 취소된 주문인데 배송 완료 시각이 있는 주문 건수: 6 건
+-- 결제 승인된 주문인데 결제 승인 시각이 없는 주문 건수: 0건
+-- 배송중이거나 송장 발행된 주문인데 배송 시각이 없는 주문 건수: 314 건
 WITH cte AS (
 	SELECT  LOWER(TRIM(REPLACE(order_status, '\r', ''))) AS status
 			,STR_TO_DATE(NULLIF(REPLACE(order_approved_at, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS approved_dt
@@ -216,7 +217,7 @@ SELECT  COUNT(*) AS orders_with_missing_customer
  * 	- 주문 기준 시점(purchase)을 중심으로 파생 컬럼 생성
  * 	- 데이터 삭제 없이 최소한의 정합성 검증 수행 -> 정합성 위반 row는 플래그로 표시하고 원본 데이터는 유지
  * 
- * Note:
+ * Notes:
  * 	- 정합성 위반 row를 삭제하지 않고 플래그로 관리함으로써 데이터 손실을 방지하고 추후 분석 단계에서 필터링이 가능하도록 설계하였습니다.
  * 	- 리드타임 등 분석에 직접적인 영향을 줄 수 있는 파생 값은 시간 정합성이 보장되는 경우에만 조건부 계산이 이루어져야 합니다.
  * 	- 비즈니스 정의에 따른 필터링은 이후 Data Mart 레이어에서 수행할 예정입니다.

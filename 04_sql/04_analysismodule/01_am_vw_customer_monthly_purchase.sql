@@ -5,19 +5,19 @@
  * File: 01_am_vw_base_customer_monthly_purchase.sql
  * Description:
  * 	- 고객 기준 월별 구매 성과를 집계하는 Base View
- * 	- (customer_unique_id, year_month) 단위로 월별 주문 수, 주문 상품 수. 매출을 제공
+ * 	- (customer_unique_id, year_month) 단위로 월별 주문 수, 주문 상품 수, 매출을 제공
  * 	- 코호트 분석 및 월차 리텐션 분석의 공통 기준 집계 뷰로 재사용
  *	- 이후 KPI View의 계산 기준 데이터로 활용
- * 	- Grain: 1 row = (customer_unique_id, year_month)
+ * 	- Grain: 1 row per (customer_unique_id, year_month)
  * 
  * 코호트 기준 정의:
  * 	- cohort_year_month는 vw_customer_first_purchase_month의 first_purchase_year_month를 사용
  * 	- month_n = cohort_month 대비 경과 월 수 (0 = 첫 구매 월)
  * 
- * Note:
+ * Notes:
  * 	- 해당 View는 고객x월 단위의 기준 집계이며, 코호트 매트릭스/리텐션율 계산은 수행하지 않습니다.
  * 	- 대상 주문/매출은 배송 완료 기준(vw_delivered_orders, vw_delivered_order_items)을 사용하였습니다.
- * 	- 미구매 월을 포함하지 않는 sparse 구조입니다. (구매가 발생한 월만 row 생성)
+ * 	- 미구매 월은 포함하지 않는 sparse 구조입니다. (구매가 발생한 월만 row 생성)
  * 	- 따라서 구매 여부 컬럼(is_active)는 항상 True(1)입니다. (이후 dense 뷰로 확장할 예정)
  */
 
@@ -105,7 +105,7 @@ SELECT  COUNT(*) AS row_cnt
   FROM  olist_am.vw_base_customer_monthly_purchase;
 
 -- 주요 컬럼 결측 확인: 0건
-SELECT  SUM(cohort_year_month IS NULL) AS null_cohort_year_mnth
+SELECT  SUM(cohort_year_month IS NULL) AS null_cohort_year_month
 		,SUM(month_n IS NULL) AS null_month_n
 		,SUM(order_cnt IS NULL) AS null_order_cnt
   FROM  olist_am.vw_base_customer_monthly_purchase;
