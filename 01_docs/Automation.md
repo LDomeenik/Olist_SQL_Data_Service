@@ -150,7 +150,7 @@ Streamlit 애플리케이션을 실행한 후 데이터 업로드와 버튼 클�
 	- `pip install -r requirements.txt`
 
 - **Raw 데이터 다운로드**
-	- README의 데이터 Source 링크를 통해 다운
+	- Kaggle (https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)을 통해 다운
 
 - **실행 코드**
 
