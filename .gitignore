@@ -9,3 +9,4 @@ __pycache__/
 outputs/
 .venv/
 venv/
+00_data/
