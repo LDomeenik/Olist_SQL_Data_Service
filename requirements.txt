@@ -1,0 +1,9 @@
+streamlit
+pandas
+altair
+sqlchemy
+python-dotenv
+mysql-connector-python
+sqlparse
+pymysql
+cryptography
