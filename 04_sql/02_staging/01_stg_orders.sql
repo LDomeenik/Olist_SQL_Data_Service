@@ -273,18 +273,7 @@ CREATE TABLE olist_stg.stg_orders (
 -- 	- estimated는 시간보다는 '일자'가 핵심인 것으로 생각되어 DATE로 표준화
 TRUNCATE TABLE olist_stg.stg_orders;
 
-WITH parsed AS (
-	SELECT  order_id
-			,customer_id
-			,LOWER(TRIM(REPLACE(order_status, '\r', ''))) AS order_status
-			
-			,STR_TO_DATE(REPLACE(order_purchase_timestamp, '\r', ''), '%Y-%m-%d %H:%i:%s') AS purchase_dt
-			,STR_TO_DATE(NULLIF(REPLACE(order_approved_at, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS approved_dt
-			,STR_TO_DATE(NULLIF(REPLACE(order_delivered_carrier_date, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS  delivered_carrier_dt
-			,STR_TO_DATE(NULLIF(REPLACE(order_delivered_customer_date, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS delivered_customer_dt
-			,STR_TO_DATE(NULLIF(REPLACE(order_estimated_delivery_date, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS estimated_delivery_dt
-	  FROM  olist_raw.orders
-)
+
 INSERT INTO olist_stg.stg_orders (
 	order_id,
 	customer_id,
@@ -311,6 +300,18 @@ INSERT INTO olist_stg.stg_orders (
 	is_time_inconsistent,
 	is_status_inconsistent,
 	is_carrier_dt_missing
+)
+WITH parsed AS (
+	SELECT  order_id
+			,customer_id
+			,LOWER(TRIM(REPLACE(order_status, '\r', ''))) AS order_status
+			
+			,STR_TO_DATE(REPLACE(order_purchase_timestamp, '\r', ''), '%Y-%m-%d %H:%i:%s') AS purchase_dt
+			,STR_TO_DATE(NULLIF(REPLACE(order_approved_at, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS approved_dt
+			,STR_TO_DATE(NULLIF(REPLACE(order_delivered_carrier_date, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS  delivered_carrier_dt
+			,STR_TO_DATE(NULLIF(REPLACE(order_delivered_customer_date, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS delivered_customer_dt
+			,STR_TO_DATE(NULLIF(REPLACE(order_estimated_delivery_date, '\r', ''), ''), '%Y-%m-%d %H:%i:%s') AS estimated_delivery_dt
+	  FROM  olist_raw.orders
 )
 SELECT  order_id
 		,customer_id
