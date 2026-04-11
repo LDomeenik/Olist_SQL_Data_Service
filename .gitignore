@@ -2,4 +2,10 @@
 Thumbs.db
 .obsidian/
 *.log
-00_data/
+__pycache__/
+.vscode/
+.env
+*.pyc
+outputs/
+.venv/
+venv/
