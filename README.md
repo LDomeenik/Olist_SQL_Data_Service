@@ -3,10 +3,18 @@
 
 
 ```
-본 프로젝트는 e-commerce 플랫폼의 매출 변동 원인을 구조적으로 분석합니다.
+본 프로젝트는 e-commerce 플랫폼의 매출 변동 원인을 구조적으로 분석하기 위해  
+데이터 파이프라인 설계 및 BI 대시보드를 구축한 프로젝트입니다.  
+  
+Raw → Staging → Data Mart → Analytics Layer까지 데이터 환경을 설계하고,  
+BI 레이어 및 Tableau 대시보드를 통해 분석 결과를 시각화하였습니다.  
+  
+또한 Streamlit 기반 자동화 환경을 구축하여  
+원본 데이터 업로드부터 파이프라인 실행, 분석 결과 생성까지  
+전체 데이터 처리 과정을 자동화하였습니다.
 
-Raw → Staging → Data Mart → Analytics Layer까지 데이터 환경을 설계하고,
-BI 레이어 및 Tableau 대시보드를 구축하여 분석 결과를 시각화하였습니다.
+해당 자동화 환경을 통해 사용자는 별도의 경로 설정 없이
+데이터 업로드만으로 전체 파이프라인을 실행할 수 있습니다.
 
 핵심 분석 결과는 다음과 같습니다.
 
@@ -25,7 +33,39 @@ BI 레이어 및 Tableau 대시보드를 구축하여 분석 결과를 시각화
 
 - 데이터 환경 설계 및 분석: MySQL
 - 대시보드: Tableau
+- 자동화: Python
 ```
+
+
+---
+## Table of contents
+
+- [Automation App](#automation-app)  
+- [Analysis Modules](#analysis-modules)  
+- [Dashboard](#dashboard)  
+  
+- [Project Overview](#project-overview)  
+- [데이터 Source](#데이터-source)  
+- [Problem Statement](#problem-statement)  
+- [Analysis Flow](#analysis-flow)  
+- [KPI Definition](#kpi-definition)  
+- [Data Architecture](#data-architecture)  
+- [Key Findings](#key-findings)  
+- [Insights & Action](#insights--action)  
+- [Automation](#automation)
+
+---
+### Automation App
+
+Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다.
+
+사용자는 원본 csv 파일을 업로드하고 
+버튼 클릭만으로 전체 데이터 파이프라인을 실행할 수 있습니다.
+
+→ [Automation App](./05_app/app.py)
+
+
+### Analysis Modules
 
 - **Growth Structure**
 	- 매출 변동의 KPI 구조 분해 (Revenue = Buyers x Orders x AOV)
@@ -43,13 +83,16 @@ BI 레이어 및 Tableau 대시보드를 구축하여 분석 결과를 시각화
 	- 주문 상태 기반 거래 안정성 분석
 	→ [View SQL](./04_sql/05_analysis/04_adhoc_operational_stability.sql)
 
+
+### Dashboard
+
 - **Tableau Dashboard**
 	→ [View Dashboard PDF](./03_dashboard/00_Dashboard_Tableau.pdf)
 
 
 ---
 
-## Project 개요
+## Project Overview
 
 
 본 프로젝트는 브라질 이커머스 플랫폼(Olist)의 거래 데이터를 기반으로
@@ -404,3 +447,30 @@ BI 레이어 및 Tableau 대시보드를 구축하여 분석 결과를 시각화
 
 ![Operational Stability Dashboard.png](02_images/07_Operational_Stability_Dashboard.png)
 
+
+---
+
+## Automation
+
+
+본 프로젝트는 Streamlit 기반 데이터 파이프라인 자동화 환경을 제공합니다.
+
+사용자는 원본 csv 데이터를 업로드하는 것만으로
+데이터 적재부터 분석 결과 생성까지 전체 프로세스를 실행할 수 있습니다.
+
+주요 기능은 다음과 같습니다.
+
+- Raw 데이터 업로드 (Streamlit UI)
+- 프로젝트 내부 데이터 폴더 자동 생성 및 파일 저장
+- SQL 기반 데이터 파이프라인 자동 실행
+- KPI 및 분석 결과 자동 생성
+- 결과 데이터(Output) 자동 갱신
+
+실행 방법은 다음과 같습니다.
+
+```bash
+streamlit run 05_app/app.py
+```
+
+
+관련 문서: [View Docs](./01_docs/Automation.md)
