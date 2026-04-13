@@ -1,12 +1,35 @@
+# OS
 .DS_Store
 Thumbs.db
-.obsidian/
-*.log
-__pycache__/
+
+# IDE
 .vscode/
-.env
+.obsidian/
+
+# Python
+__pycache__/
 *.pyc
-outputs/
+
+# Logs
+*.log
+
+# Environment
+.env
 .venv/
 venv/
-00_data/
+
+# Database
+*.sqlite
+*.db
+
+# Outputs (keep folder only)
+outputs/*
+!outputs/.gitkeep
+
+# Raw data (keep folder only)
+00_data/01_raw/*
+!00_data/01_raw/.gitkeep
+
+# Other data folders
+00_data/02_staging_data/
+00_data/03_dashboard_data/
