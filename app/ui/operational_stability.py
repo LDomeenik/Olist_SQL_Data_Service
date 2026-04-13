@@ -7,6 +7,7 @@
 - 매출 변동이 운영 이슈와 직접 연결되는지 진단
 """
 
+import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -17,15 +18,6 @@ from app.ui.components.insight_box import render_insight_box
 def render_operational_stability(ops_df: pd.DataFrame) -> None:
     """
     Operational Stability 페이지 전체를 렌더링하는 함수
-
-    입력 데이터:
-    - ops_df: 운영 안정성 관련 KPI와 row_type 정보가 포함된 DataFrame
-
-    주요 동작:
-    - 월별 운영 KPI 데이터 분리
-    - 평균 취소율 / unavailable 비율 / 실패율 KPI 카드 표시
-    - 실패율 추이 및 운영 지표 추이 시각화
-    - 원본 데이터 확인용 테이블 제공
     """
     st.subheader("Operational Stability")
     st.caption(
@@ -39,6 +31,8 @@ def render_operational_stability(ops_df: pd.DataFrame) -> None:
 
     # 데이터 복사
     df = ops_df.copy()
+    df = df.replace([np.inf, -np.inf], None)
+
     monthly_df = df.copy()
 
     # 월별 KPI 데이터 분리
@@ -117,7 +111,13 @@ def render_operational_stability(ops_df: pd.DataFrame) -> None:
 
         failed_df = monthly_df[["year_month", "failed_rate"]].copy()
         failed_df = failed_df.set_index("year_month")
-        st.line_chart(failed_df, use_container_width=True)
+        failed_df = failed_df.replace([np.inf, -np.inf], None).fillna(0)
+        failed_df.index = failed_df.index.astype(str)
+
+        try:
+            st.line_chart(failed_df, use_container_width=True)
+        except Exception:
+            st.warning("실패율 차트를 렌더링할 수 없습니다.")
 
     # Operational Stability Rate Trend
     rate_cols = [
@@ -134,8 +134,14 @@ def render_operational_stability(ops_df: pd.DataFrame) -> None:
 
         rate_df = monthly_df[["year_month"] + rate_cols].copy()
         rate_df = rate_df.set_index("year_month")
-        st.line_chart(rate_df, use_container_width=True)
+        rate_df = rate_df.replace([np.inf, -np.inf], None).fillna(0)
+        rate_df.index = rate_df.index.astype(str)
+
+        try:
+            st.line_chart(rate_df, use_container_width=True)
+        except Exception:
+            st.warning("운영 안정성 차트를 렌더링할 수 없습니다.")
 
     # 원본 데이터
     with st.expander("원본 데이터 보기"):
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df.head(100), use_container_width=True)

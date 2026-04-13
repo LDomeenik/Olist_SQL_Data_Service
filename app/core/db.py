@@ -1,49 +1,69 @@
 """
-데이터베이스 연결 유틸리티 파일
+SQLite DB 연결 및 관리 모듈
 
 주요 역할:
-- settings.py의 SQLite 경로를 사용해 연결 객체 생성
-- SQLite DB 초기화 및 연결 상태 확인 지원
+- SQLite DB connection 생성
+- 안정성 설정 (WAL, timeout 등)
+- DB 초기화 (수동 실행 전용)
 """
 
-
 import sqlite3
-from pathlib import Path
 
 from app.config.settings import SQLITE_DB_PATH
 
 
-# SQLite 연결 생성
 def get_connection() -> sqlite3.Connection:
     """
-    SQLite 데이터베이스 연결 객체를 반환합니다.
+    SQLite DB connection을 생성합니다.
+
+    특징:
+    - timeout 설정으로 lock 대기 가능
+    - WAL 모드로 읽기/쓰기 동시 처리 가능
+    - busy_timeout으로 lock 시 재시도
     """
-    conn = sqlite3.connect(SQLITE_DB_PATH)
+    conn = sqlite3.connect(
+        SQLITE_DB_PATH,
+        timeout=30,
+    )
+
     conn.row_factory = sqlite3.Row
+
     conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute("PRAGMA journal_mode = WAL;")
+    conn.execute("PRAGMA synchronous = NORMAL;")
+    conn.execute("PRAGMA busy_timeout = 30000;")
+
     return conn
 
-# 데이터베이스 초기화
+
 def reset_database() -> None:
     """
-    기존 SQLite DB 파일을 삭제하여 초기화합니다.
+    SQLite DB 파일을 삭제하여 초기화합니다.
+
+    주의:
+    - 모든 connection이 닫힌 상태에서 실행해야 합니다.
+    - 일반 pipeline 실행에서는 자동 호출하지 않습니다.
     """
-    db_path = Path(SQLITE_DB_PATH)
+    if SQLITE_DB_PATH.exists():
+        SQLITE_DB_PATH.unlink()
 
-    if db_path.exists():
-        db_path.unlink()
 
-# 연결 테스트
+def database_exists() -> bool:
+    """
+    SQLite DB 파일 존재 여부를 반환합니다.
+    """
+    return SQLITE_DB_PATH.exists()
+
+
 def test_connection() -> bool:
     """
-    SQLite 연결이 정상적으로 되는지 확인합니다.
+    SQLite 연결이 정상적으로 가능한지 확인합니다.
     """
     try:
         conn = get_connection()
         conn.execute("SELECT 1;")
         conn.close()
         return True
-    
     except Exception as e:
         print(f"DB 연결 실패: {e}")
         return False

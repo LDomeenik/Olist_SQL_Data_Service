@@ -21,8 +21,7 @@ def run_sql_pipeline() -> None:
     1. Staging Layer
     2. Data Mart Layer
     3. Analysis Module Layer
-    4. Analysis Layer
-    5. BI Layer
+    4. BI Layer
 
     각 단계는 이전 단계의 결과를 의존하므로 반드시 순서를 유지해야 합니다.
     """

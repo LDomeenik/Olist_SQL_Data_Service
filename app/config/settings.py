@@ -25,14 +25,12 @@ OUTPUT_DIR = BASE_DIR / "outputs"
 
 # 데이터 디렉토리
 RAW_DATA_DIR = DATA_ROOT_DIR / "01_raw"
-STAGING_DATA_DIR = DATA_ROOT_DIR / "02_staging_data"
-DASHBOARD_DATA_DIR = DATA_ROOT_DIR / "03_dashboard_data"
 
-# SQLite 설정
-SQLITE_DB_PATH = OUTPUT_DIR / "olist.sqlite"
+# SQLite DB 전용 디렉토리
+DB_DIR = BASE_DIR / "db"
+SQLITE_DB_PATH = DB_DIR / "olist.sqlite"
 
 # 디렉토리 자동 생성(디렉토리가 없을 시 자동 생성되게 설정)
+DB_DIR.mkdir(parents=True, exist_ok=True)
 RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-STAGING_DATA_DIR.mkdir(parents=True, exist_ok=True)
-DASHBOARD_DATA_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

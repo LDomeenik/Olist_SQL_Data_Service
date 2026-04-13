@@ -63,7 +63,7 @@ def render_empty_state(missing_keys: list[str]) -> None:
 1. 사이드바의 **Data Import**에서 Raw CSV 파일을 업로드합니다.  
 2. **Import Raw Data** 버튼으로 데이터를 저장합니다.  
 3. **Run Data Pipeline** 버튼을 눌러 출력 데이터를 생성합니다.  
-4. 완료 후 대시보드가 자동으로 다시 로드됩니다.
+4. 완료 후 Refresh 버튼을 눌럭 대시보드를 로드됩니다.
 """
         )
 

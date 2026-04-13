@@ -9,6 +9,7 @@
 
 import altair as alt
 import pandas as pd
+import numpy as np
 import streamlit as st
 
 from app.ui.components.kpi_cards import render_kpi_cards
@@ -18,18 +19,6 @@ from app.ui.components.insight_box import render_insight_box
 def render_customer_value(customer_df: pd.DataFrame) -> None:
     """
     Customer Value Structure 페이지 전체를 렌더링하는 함수
-
-    입력 데이터:
-    - customer_df: monthly_value / new_repeat_share / decile_share / cohort_retention
-      섹션이 포함된 고객 가치 분석 DataFrame
-
-    주요 동작:
-    - 고객 가치 관련 핵심 KPI 카드 표시
-    - 고객 가치 추이 시각화
-    - 신규 vs 재구매 구조 시각화
-    - 매출 집중도 시각화
-    - 코호트 리텐션 히트맵 표시
-    - 원본 데이터 확인용 테이블 제공
     """
     st.subheader("Customer Value Structure")
     st.caption(
@@ -46,6 +35,9 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
 
     if "year_month" in df.columns:
         df = df.sort_values("year_month").reset_index(drop=True)
+
+    # 전체 데이터 안정화
+    df = df.replace([np.inf, -np.inf], None)
 
     # 섹션 분리
     monthly_df = (
@@ -196,7 +188,14 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
 
         chart_df = monthly_df[["year_month"] + trend_cols].copy()
         chart_df = chart_df.set_index("year_month")
-        st.line_chart(chart_df, use_container_width=True)
+
+        chart_df = chart_df.replace([np.inf, -np.inf], None).fillna(0)
+        chart_df.index = chart_df.index.astype(str)
+
+        try:
+            st.line_chart(chart_df, use_container_width=True)
+        except Exception:
+            st.warning("고객 가치 추이 차트를 렌더링할 수 없습니다.")
 
     # New vs Repeat Structure
     if not new_repeat_df.empty:
@@ -213,7 +212,14 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
                     values="gross_revenue",
                 ).fillna(0)
             )
-            st.bar_chart(revenue_pivot, use_container_width=True)
+
+            revenue_pivot = revenue_pivot.replace([np.inf, -np.inf], None).fillna(0)
+            revenue_pivot.index = revenue_pivot.index.astype(str)
+
+            try:
+                st.bar_chart(revenue_pivot, use_container_width=True)
+            except Exception:
+                st.warning("신규/재구매 매출 차트를 렌더링할 수 없습니다.")
 
         if {"year_month", "sub_type", "buyers"}.issubset(new_repeat_df.columns):
             buyers_pivot = (
@@ -223,7 +229,14 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
                     values="buyers",
                 ).fillna(0)
             )
-            st.bar_chart(buyers_pivot, use_container_width=True)
+
+            buyers_pivot = buyers_pivot.replace([np.inf, -np.inf], None).fillna(0)
+            buyers_pivot.index = buyers_pivot.index.astype(str)
+
+            try:
+                st.bar_chart(buyers_pivot, use_container_width=True)
+            except Exception:
+                st.warning("신규/재구매 구매자 차트를 렌더링할 수 없습니다.")
 
     # Revenue Concentration
     if not decile_df.empty:
@@ -240,7 +253,14 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
                     values="gross_revenue",
                 ).fillna(0)
             )
-            st.area_chart(decile_pivot, use_container_width=True)
+
+            decile_pivot = decile_pivot.replace([np.inf, -np.inf], None).fillna(0)
+            decile_pivot.index = decile_pivot.index.astype(str)
+
+            try:
+                st.area_chart(decile_pivot, use_container_width=True)
+            except Exception:
+                st.warning("매출 집중도 차트를 렌더링할 수 없습니다.")
 
     # Cohort Retention Heatmap
     if not cohort_df.empty:
@@ -254,6 +274,7 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
         if required_cols.issubset(cohort_df.columns):
             heatmap_source = cohort_df.copy()
             heatmap_source["month_n"] = heatmap_source["month_n"].astype(str)
+            heatmap_source = heatmap_source.replace([np.inf, -np.inf], None).fillna(0)
 
             chart = (
                 alt.Chart(heatmap_source)
@@ -275,8 +296,11 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
                 .properties(height=500)
             )
 
-            st.altair_chart(chart, use_container_width=True)
+            try:
+                st.altair_chart(chart, use_container_width=True)
+            except Exception:
+                st.warning("코호트 리텐션 히트맵을 렌더링할 수 없습니다.")
 
     # 원본 데이터
     with st.expander("원본 데이터 보기"):
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df.head(100), use_container_width=True)

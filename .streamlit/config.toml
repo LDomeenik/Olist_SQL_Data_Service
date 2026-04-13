@@ -1,0 +1,2 @@
+[server]
+folderWatchBlacklist = ["outputs", "00_data/01_raw"]

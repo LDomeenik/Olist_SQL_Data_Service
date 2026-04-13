@@ -1,92 +1,91 @@
-"""
-Streamlit 메인 애플리케이션 파일
-
-주요 역할:
-- 전체 대시보드 UI 구성 및 페이지 라우팅
-- 사이드바 제어 패널 렌더링
-- 데이터 로딩 및 상태 검증
-- 각 분석 모듈(Overview, Growth, Customer, Ops) 연결
-"""
-
-
 import streamlit as st
 
 from app.ui.data_loader import load_all_datasets
-from app.ui.overview import render_overview
-from app.ui.growth_structure import render_growth_structure
-from app.ui.growth_drill_down import render_growth_drill_down
-from app.ui.customer_value_structure import render_customer_value
-from app.ui.operational_stability import render_operational_stability
 from app.ui.components.sidebar_controls import render_sidebar_controls
 from app.ui.components.app_state import validate_datasets, render_empty_state
 
-
-# 페이지 설정
 st.set_page_config(
     page_title="Olist Analytics Data Service",
     layout="wide"
 )
 
-# 페이지 헤더
 st.title("Olist Analytics Data Service")
-st.caption(
-    "이커머스 데이터 기반으로 성장, 고객 가치, 운영 안정성을 종합 분석하는 데이터 서비스"
-)
+st.caption("이커머스 데이터 기반으로 성장, 고객 가치, 운영 안정성을 종합 분석하는 데이터 서비스")
 
-# 사이드바 컨트롤 패널
+# Sidebar
 render_sidebar_controls()
 
-# 데이터 로드
-try:
-    datasets = load_all_datasets()
-except Exception as e:
-    st.error(f"데이터를 불러오는 중 오류가 발생했습니다: {e}")
-    datasets = {}
+# Data Load
+datasets = load_all_datasets()
 
 if not datasets:
     st.info("좌측 사이드바에서 Raw 데이터를 업로드하고 파이프라인을 실행하세요.")
-    
+    st.stop()
 
-# 데이터 준비 상태 확인
 is_ready, missing_keys = validate_datasets(datasets)
 
 if not is_ready:
     render_empty_state(missing_keys)
     st.stop()
 
-# 데이터셋 분리
-growth_df = datasets["growth_structure"]
-drill_df = datasets["growth_drill_down"]
-customer_df = datasets["customer_value_structure"]
-ops_df = datasets["operational_stability"]
+# Data Mapping
+growth_df = datasets.get("growth_structure")
+drill_df = datasets.get("growth_drill_down")
+customer_df = datasets.get("customer_value_structure")
+ops_df = datasets.get("operational_stability")
 
-# 탭 구성
-tab0, tab1, tab2, tab3, tab4 = st.tabs(
-    [
-        "Overview",
-        "Growth Structure",
-        "Growth Drill Down",
-        "Customer Value Structure",
-        "Operational Stability"
-    ]
-)
+# Page State
+if "current_page" not in st.session_state:
+    st.session_state["current_page"] = "Overview"
 
-# Overview
-with tab0:
+nav1, nav2, nav3, nav4, nav5 = st.columns(5)
+
+with nav1:
+    if st.button("Overview", use_container_width=True):
+        st.session_state["current_page"] = "Overview"
+
+with nav2:
+    if st.button("Growth Structure", use_container_width=True):
+        st.session_state["current_page"] = "Growth Structure"
+
+with nav3:
+    if st.button("Growth Drill Down", use_container_width=True):
+        st.session_state["current_page"] = "Growth Drill Down"
+
+with nav4:
+    if st.button("Customer Value Structure", use_container_width=True):
+        st.session_state["current_page"] = "Customer Value Structure"
+
+with nav5:
+    if st.button("Operational Stability", use_container_width=True):
+        st.session_state["current_page"] = "Operational Stability"
+
+st.divider()
+
+# Page Router (Lazy Import)
+page = st.session_state["current_page"]
+
+if page == "Overview":
+    from app.ui.overview import render_overview
     render_overview(growth_df, drill_df, customer_df, ops_df)
+    st.stop()
 
-# Growth Structure
-with tab1:
+elif page == "Growth Structure":
+    from app.ui.growth_structure import render_growth_structure
     render_growth_structure(growth_df)
+    st.stop()
 
-# Growth Drill Down
-with tab2:
+elif page == "Growth Drill Down":
+    from app.ui.growth_drill_down import render_growth_drill_down
     render_growth_drill_down(drill_df)
+    st.stop()
 
-# Customer Value Structure
-with tab3:
+elif page == "Customer Value Structure":
+    from app.ui.customer_value_structure import render_customer_value
     render_customer_value(customer_df)
+    st.stop()
 
-# Operational Stability
-with tab4:
+elif page == "Operational Stability":
+    from app.ui.operational_stability import render_operational_stability
     render_operational_stability(ops_df)
+    st.stop()
