@@ -1,9 +1,4 @@
-streamlit
-pandas
-altair
-sqlchemy
-python-dotenv
-mysql-connector-python
-sqlparse
-pymysql
-cryptography
+streamlit==1.32.2
+pandas==2.2.2
+altair==5.3.0
+sqlalchemy==2.0.29
