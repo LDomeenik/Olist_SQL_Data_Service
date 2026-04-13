@@ -69,9 +69,7 @@ def render_overview(
         st.warning("표시할 데이터가 없습니다. 먼저 파이프라인을 실행해 주세요.")
         return
 
-    # -------------------------
     # KPI 계산
-    # -------------------------
     total_revenue = _safe_sum(growth_df, "gross_revenue")
     total_orders = _safe_sum(growth_df, "order_cnt")
 
@@ -150,18 +148,17 @@ def render_overview(
     render_insight_box(
         title="Executive Summary",
         message=(
-            "플랫폼 매출은 고객 가치 상승보다 주문 수와 구매자 수 증가에 더 크게 반응합니다. "
-            "재구매율은 낮은 수준으로, 매출 구조는 신규 고객 유입에 크게 의존하고 있습니다. "
-            "또한 매출 급락 구간에서도 운영 지표 악화는 관찰되지 않아, 매출 감소의 주요 원인은 수요 감소로 해석됩니다."
+            "전체 분석 결과, 플랫폼 매출은 고객 가치 상승보다 신규 고객 유입 규모에 의해 결정되는 구조로 나타납니다.\n\n "
+            "매출 급락 구간에서도 가격(AOV)이나 운영 안정성 변화는 제한적이었으며,\n\n "
+            "신규 구매자 수 감소가 매출 하락을 직접적으로 설명합니다.\n\n "
+            "즉, 현재 매출 변동은 공급/운영 문제가 아닌 acquisition 기반 수요 변화에 의해 발생합니다."
         ),
         level="info",
     )
 
     st.divider()
 
-    # -------------------------
     # 차트 1: Growth Structure
-    # -------------------------
     if (
         growth_df is not None
         and not growth_df.empty
@@ -180,9 +177,7 @@ def render_overview(
 
         st.line_chart(growth_chart_df, height=260)
 
-    # -------------------------
     # 차트 2: Operational Stability
-    # -------------------------
     if (
         monthly_ops_df is not None
         and not monthly_ops_df.empty
@@ -203,9 +198,7 @@ def render_overview(
 
     st.divider()
 
-    # -------------------------
     # Module Summary
-    # -------------------------
     st.markdown("### Module Summary")
 
     render_insight_box(
@@ -223,8 +216,18 @@ def render_overview(
     render_insight_box(
         title="Action Plan",
         message=(
-            "단기적으로는 신규 유입 감소 원인을 파악하고, "
-            "중장기적으로는 재구매율과 초기 리텐션을 높이는 방향이 중요합니다."
+            "분석 결과, 매출 감소는 운영 문제나 상품 믹스 변화가 아닌 "
+            "신규 고객 유입 감소에 따른 수요 축소로 확인되었습니다.\n\n "
+
+            "이에 따라 단기적으로는 acquisition funnel을 채널 → 유입 → 전환 단계로 분해하여\n\n "
+            "유입 감소 원인 및 전환 병목 구간을 식별하고, "
+            "마케팅 채널 최적화 및 랜딩/결제 UX 개선을 통해 전환율을 회복해야 합니다. \n\n"
+
+            "중기적으로는 CRM, 리타겟팅, 프로모션을 활용한 재구매 유도 전략을 통해 "
+            "신규 고객 의존도를 완화하고,\n\n "
+
+            "장기적으로는 코호트 리텐션 개선을 통해 retention 기반 매출 구조로 전환하여\n\n "
+            "매출 변동성을 낮추는 방향으로 전략을 설계해야 합니다."
         ),
-        level="warning",
+        level="info",
     )

@@ -13,6 +13,7 @@ import numpy as np
 import streamlit as st
 
 from app.ui.components.insight_box import render_insight_box
+from app.ui.components.kpi_cards import apply_kpi_metric_style
 
 
 def _format_number(value, value_type: str = "number") -> str | None:
@@ -65,6 +66,8 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
     """
     st.subheader("Growth Drill Down")
     st.caption("매출 급락 구간의 원인을 신규/재구매, 카테고리, 지역 관점에서 분해합니다.")
+
+    apply_kpi_metric_style()
 
     if drill_df.empty:
         st.warning("growth_drill_down.csv 파일이 없습니다.")
@@ -154,14 +157,21 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
 
             render_insight_box(
                 title="Key Insight",
-                message=f"{growth_month} → {drop_month} 구간의 매출 감소는 거래량 감소 영향이 더 큽니다.",
+                message=(
+                    f"{growth_month} → {drop_month} 구간의 매출 급락은 특정 카테고리나 특정 지역의 붕괴가 아닌,\n\n "
+                    "신규 구매자 유입 감소에 따른 전반적 거래량 축소로 해석됩니다.\n\n "
+                    "카테고리와 지역 모두 상위 구조는 유지된 상태에서 동반 하락했으며,\n\n "
+                    "신규 매출 감소가 전체 매출 감소를 사실상 대부분 설명합니다.\n\n "
+                    "즉, 이 하락은 상품 믹스 변화가 아닌 platform-wide demand 감소의 신호입니다."
+                ),
                 level="info",
             )
 
     st.divider()
 
     # 신규 vs 재구매
-    st.markdown("#### 신규 vs 재구매 구조 분해")
+    st.markdown("#### New vs Repeat Revenue Structure")
+    st.caption("신규 고객과 재구매 고객이 매출 감소에 얼마나 기여했는지 비교합니다.")
 
     if not buyer_df.empty:
         buyer_compare = buyer_df[
@@ -191,6 +201,8 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
     st.divider()
 
     # 카테고리
+    st.markdown("#### Category Contribution Change")
+    st.caption("카테고리별 매출 변화량을 통해 특정 카테고리 영향 여부를 확인합니다.")
     category_df = df[df["section_type"] == "category"].copy()
 
     if not category_df.empty:
@@ -223,6 +235,8 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
     st.divider()
 
     # 지역
+    st.markdown("#### Regional Contribution Change")
+    st.caption("지역별 매출 변화량을 통해 특정 지역의 수요 감소 여부를 확인합니다.")
     city_df = df[df["section_type"] == "city_state"].copy()
 
     if not city_df.empty:

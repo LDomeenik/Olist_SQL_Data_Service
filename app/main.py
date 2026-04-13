@@ -62,7 +62,7 @@ with nav5:
 
 st.divider()
 
-# Page Router (Lazy Import)
+# Page Router
 page = st.session_state["current_page"]
 
 if page == "Overview":

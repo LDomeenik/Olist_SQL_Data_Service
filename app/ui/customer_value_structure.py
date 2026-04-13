@@ -166,8 +166,10 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
     render_insight_box(
         title="Key Insight",
         message=(
-            "고객 1인당 가치(ARPB)와 구매 빈도는 비교적 안정적이며, "
-            "매출 변화는 고객 가치 상승보다 신규 고객 유입 규모 변화에 더 크게 영향을 받는 구조입니다."
+            "고객 1인당 가치(ARPB), 구매 빈도, AOV는 전 기간 동안 큰 변화 없이 안정적으로 유지됩니다.\n\n "
+            "또한 매출은 특정 상위 고객군에 집중되지 않고 전체 고객에 분산된 구조를 보입니다.\n\n "
+            "코호트 리텐션 역시 매우 낮은 수준으로 나타나,\n\n 매출은 기존 고객의 반복 구매보다는 "
+            "신규 고객 유입에 의해 발생하는 구조로 해석됩니다."
         ),
         level="info",
     )
@@ -201,7 +203,7 @@ def render_customer_value(customer_df: pd.DataFrame) -> None:
     if not new_repeat_df.empty:
         st.markdown("#### New vs Repeat Structure")
         st.caption(
-            "매출과 구매자가 신규 고객과 재구매 고객 중 어디에서 발생하는지 비교하여 성장 구조를 확인합니다."
+            "매출과 구매자가 신규 고객과 재구매 고객 중 어디에서 발생하는지 비교하여 성장 구조를 확인합니다. (상단: Revenue / 하단: Buyers)"
         )
 
         if {"year_month", "sub_type", "gross_revenue"}.issubset(new_repeat_df.columns):
