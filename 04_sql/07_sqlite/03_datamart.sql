@@ -55,7 +55,7 @@ INSERT INTO dim_date (
     is_month_start,
     is_month_end
 )
-WITH bounds AS (
+WITH RECURSIVE bounds AS (
     SELECT  date(MIN(d), '-1 month') AS start_date
             ,date(MAX(d), '+1 month') AS end_date
       FROM  (
@@ -80,7 +80,7 @@ WITH bounds AS (
              WHERE  order_estimated_delivery_dt IS NOT NULL
             ) t
 ),
-RECURSIVE cal(d) AS (
+cal(d) AS (
     SELECT  start_date
       FROM  bounds
     UNION ALL
