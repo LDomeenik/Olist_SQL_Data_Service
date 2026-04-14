@@ -24,7 +24,7 @@ SQLite 기반 경량 실행 환경과 Streamlit 인터페이스를 구축하였�
 ## 1. 설계 전략
 
 ```
-본 프로젝트는 데이터 분석 설계와 사용자 실행 환경의 목적이 다르다고 판단하여
+본 프로젝트는 데이터 분석 설계 환경과 사용자 실행 환경의 목적이 다르다고 판단하여
 DB 및 실행 구조를 분리하는 전략을 채택하였습니다.
 
 초기 설계 단계에서는 데이터 모델링과 KPI 재현성 확보를 중심으로 
@@ -239,7 +239,7 @@ Streamlit과 SQLite를 기반으로 경량 실행 구조를 설계하였습니�
 - **SQLite Database**
 	- 단계별 SQL 스크립트를 실행하여 데이터 변환 및 KPI 계산 수행
 
-- **Visualizatoin Dashboard**
+- **Visualization Dashboard**
 	- 분석 결과를 KPI 및 차트 형태로 시각화
 	- 데이터 변경 시 결과 자동 반영
 
@@ -387,7 +387,7 @@ Streamlit Community Cloud를 활용하여 애플리케이션을 배포합니다.
 ```
 본 자동화 환경의 배포는 GitHub와 Streamlit Community Cloud를 기준으로 구성합니다.
 
-소스 코드는 Github 저장소에서 관리하며,
+소스 코드는 GitHub 저장소에서 관리하며,
 배포 환경에서는 Streamlit Community Cloud가 해당 저장소를 기반으로
 애플리케이션을 실행합니다.
 
@@ -426,10 +426,3 @@ Streamlit Community Cloud를 활용하여 애플리케이션을 배포합니다.
 - **사용자 접근**
 	- 웹 URL을 통해 애플리케이션 접속
 	- 데이터 업로드 → 파이프라인 실행 → 결과 확인
-
-
-### 3.2 실행 조건
-
-```
-
-```

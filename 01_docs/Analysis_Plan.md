@@ -184,7 +184,7 @@ Olist는 매출, 주문 수, 구매자 수와 같은 핵심 KPI를 지속적으�
 
 전체 분석 Flow는 다음과 같은 구조로 구성됩니다.
 
-Raw Data -> Staging -> Data Mart -> Analysis Modules -> Dashboard
+Raw Data → Staging → Data Mart → Analysis Modules → Dashboard
 ```
 
 - **Raw Data**
@@ -209,3 +209,38 @@ Raw Data -> Staging -> Data Mart -> Analysis Modules -> Dashboard
 	- 분석 모듈과 데이터 마트를 기반으로 주요 KPI와 분석 결과를 시각화하여 제공
 	- 대시보드를 통해 비즈니스 현황을 직관적으로 확인하고, 문제 구간을 빠르게 파악
 
+
+---
+
+## 7. 확장 및 구현 (Automation & Deployment)
+
+
+```
+본 프로젝트는 분석 설계 단계에서 정의된 데이터 구조와 KPI 기준을 기반으로,
+사용자가 직접 실행 가능한 분석 환경으로 확장하는 것을 목표로 합니다.
+
+이를 위해 분석 환경과 사용자 실행 환경을 분리하여 설계하였으며,
+각 환경의 목적에 맞는 기술 스택을 적용하였습니다.
+
+분석 환경에서는 MySQL 기반 데이터 마트와 KPI 분석 구조를 설계하고,
+사용자 실행 환경에서는 Python + SQLite 기반의 경량 파이프라인과
+Streamlit 대시보드를 통해 전체 분석 프로세스를 자동화하였습니다.
+
+이를 통해 사용자는 원본 데이터를 업로드하는 것만으로
+데이터 적재, 파이프라인 실행, 분석 결과 생성까지
+전체 분석 과정을 실행할 수 있습니다.
+
+해당 구조는 분석 설계의 정확성과 사용자 실행 편의성을 동시에 확보하기 위한 설계로,
+향후 실제 서비스 환경으로 확장 가능한 구조를 지향합니다.
+```
+
+- **분석 환경**
+	- MySQL 기반 데이터 파이프라인 구축
+	- Raw → Staging → Data Mart → Analytics Layer 설계
+	- KPI 정의 및 분석 구조 설계
+	- Tableau를 활용한 분석 대시보드 구현
+
+- **실행 환경**
+	- Python + SQLite 기반 경량 데이터 파이프라인 구축
+	- Streamlit 기반 인터랙티브 대시보드 구현
+	- CSV 업로드 → 파이프라인 실행 → 분석 결과 생성까지 자동화

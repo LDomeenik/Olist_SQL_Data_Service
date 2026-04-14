@@ -2,49 +2,51 @@
 # Olist SQL Data Service
 
 
-```
-본 프로젝트는 e-commerce 플랫폼의 매출 변동 원인을 구조적으로 분석하기 위해  
-데이터 파이프라인 설계 및 BI 대시보드를 구축한 프로젝트입니다.  
-  
-Raw → Staging → Data Mart → Analytics Layer까지 데이터 환경을 설계하고,  
-BI 레이어 및 Tableau 대시보드를 통해 분석 결과를 시각화하였습니다.  
-  
-또한 Streamlit 기반 자동화 환경을 구축하여  
-원본 데이터 업로드부터 파이프라인 실행, 분석 결과 생성까지  
-전체 데이터 처리 과정을 자동화하였습니다.
+본 프로젝트는 e-commerce 플랫폼의 매출 변동 원인을 구조적으로 분석하고,
+이를 기반으로 실행 가능한 데이터 분석 환경을 구축하기 위해 진행되었습니다.
 
-해당 자동화 환경을 통해 사용자는 별도의 경로 설정 없이
-데이터 업로드만으로 전체 파이프라인을 실행할 수 있습니다.
+프로젝트는 분석 환경과 사용자 실행 환경을 분리하여 설계하였으며,
+각 환경의 목적에 맞는 기술 스택과 아키텍처를 적용하였습니다.
+
+→ 분석 정확성과 실행 편의성을 동시에 확보하기 위한 구조입니다.
+#### 분석 환경 (Local Analytics Environment)
+
+- MySQL 기반 데이터 파이프라인 구축
+- Raw → Staging → Data Mart → Analytics Layer 설계
+- KPI 정의 및 분석 구조 설계
+- Tableau를 활용한 분석 대시보드 구현
+
+#### 실행 환경 (User Execution Environment)
+
+- Python + SQLite 기반 경량 데이터 파이프라인 구축
+- Streamlit 기반 인터랙티브 대시보드 구현
+- CSV 업로드 → 파이프라인 실행 → 분석 결과 생성까지 자동화
+
+이와 같이 분석 설계와 실행 환경을 분리함으로써,
+데이터 모델링의 정확성과 사용자 실행 편의성을 동시에 확보하였습니다.
 
 핵심 분석 결과는 다음과 같습니다.
 
 - 매출 급락 원인: 신규 고객 유입 감소
-  
 - 성장 구조: 고객 가치 상승이 아닌 거래량(특히 신규 구매자) 기반
-  
-- 핵심 문제: acquisition 중심 구조로 인한 매출 변동성
-  
+- 핵심 문제: Acquisition 중심 구조로 인한 매출 변동성
 - 결론: 매출 감소는 운영 문제가 아닌 수요 축소 문제
-  
-- 해결 방향: Acquisition Funnel 최적화 + Retention 전략 강화
 
+본 프로젝트에서 사용한 주요 기술 스택은 다음과 같습니다.
 
-분석에서 사용한 도구는 아래와 같습니다.
-
-- 데이터 환경 설계 및 분석: MySQL
-- 대시보드: Tableau
-- 자동화: Python
-```
+- 분석 환경: MySQL, Tableau
+- 실행 환경: Python, SQLite, Streamlit
 
 
 ---
 ## Table of contents
 
-- [Automation App](#automation-app)  
+- [Project Overview](#project-overview)
 - [Analysis Modules](#analysis-modules)  
-- [Dashboard](#dashboard)  
+- [Dashboard](#dashboard)
+- [Automation App](#automation-app)  
   
-- [Project Overview](#project-overview)  
+
 - [데이터 Source](#데이터-source)  
 - [Problem Statement](#problem-statement)  
 - [Analysis Flow](#analysis-flow)  
@@ -57,12 +59,10 @@ BI 레이어 및 Tableau 대시보드를 통해 분석 결과를 시각화하였
 ---
 ### Automation App
 
-Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다.
+Streamlit 기반 데이터 파이프라인 자동화 애플리케이션으로,
+CSV 업로드부터 분석 결과 생성까지 End-to-End 실행이 가능합니다.
 
-사용자는 원본 csv 파일을 업로드하고 
-버튼 클릭만으로 전체 데이터 파이프라인을 실행할 수 있습니다.
-
-→ [Automation App](./05_app/app.py)
+→ [Automation App](https://ldomeenik-olist-sql-data-service.streamlit.app/)
 
 
 ### Analysis Modules
@@ -87,6 +87,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 ### Dashboard
 
 - **Tableau Dashboard**
+	- KPI 및 분석 결과를 기반으로 매출 구조와 주요 인사이트를 시각화
 	→ [View Dashboard PDF](./03_dashboard/00_Dashboard_Tableau.pdf)
 
 
@@ -105,7 +106,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 전체 분석은 다음 4가지 모듈로 구성됩니다.
 
 - Growth Structure: 매출 성장 구조 분석
-- Growth Drill Down: 매출 급락 원인 분석 (2017-11 -> 2017-12)
+- Growth Drill Down: 매출 급락 원인 분석 (2017-11 → 2017-12)
 - Customer Value Structure: 고객 기반 매출 구조 분석
 - Operational Stability: 운영 리스크 및 안정성 분석
 
@@ -165,6 +166,8 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 ## Problem Statement
 
 
+본 프로젝트는 매출 변동의 원인을 구조적으로 설명하는 것을 목표로 합니다.
+
 이커머스 플랫폼의 매출은 단순한 증가/감소 수치만으로는 그 원인을 명확히 설명하기 어렵습니다.
 매출은 구매자 수, 주문 수, 고객 가치, 운영 안정성 등 다양한 요소가
 복합적으로 작용한 결과이기 때문입니다.
@@ -200,7 +203,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 
 본 프로젝트는 단순 지표 분석이 아닌,
 매출을 구성하는 요소를 단계적으로 분해하여
-성장 구조 -> 원인 분석 -> 고객 구조 -> 운영 영향 검증의 흐름으로 진행되었습니다.
+성장 구조 → 원인 분석 → 고객 구조 → 운영 영향 검증의 흐름으로 진행되었습니다.
 
 전체 분석은 다음 4단계로 구성됩니다.
 
@@ -212,7 +215,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 
 2. **Growth Drill Down**
 	
-	- 매출 급락 구간(2017-11 -> 2017-12)을 대상으로 구조적 원인을 상세 분석
+	- 매출 급락 구간(2017-11 → 2017-12)을 대상으로 구조적 원인을 상세 분석
 	- 카테고리, 지역, 신규/재구매 구조를 기준으로 매출 감소 기여도를 분해
 	- 특정 요인에 집중된 문제인지, 전반적인 수요 감소인지 판단
 
@@ -293,7 +296,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 본 프로젝트는 단순 분석을 넘어,
 지속적으로 재사용 가능한 분석 환경을 구축하기 위해
 데이터 레이어를 단계적으로 설계하였습니다.
-(Raw Layer -> Staging -> Data Mart -> Analytics -> BI)
+(Raw → Staging → Data Mart → Analytics → BI)
 
 전체 구조는 다음과 같은 4단계로 구성되고, 추가로 BI Layer를 추가하였습니다.
 (BI Layer는 대시보드용 데이터 레이어로 필수 레이어는 아닙니다.)
@@ -349,7 +352,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 	- 매출 증가의 주요 원인은 구매자 수(Active Buyers)와 주문 수(Orders) 증가
 	- AOV, ARPB는 전체 기간 동안 큰 변동 없이 안정적인 수준 유지
 
-2. **Growth Drill Down(2017-11 -> 2017-12): 매출 급락은 신규 유입 감소에 따른 거래량 축소**
+2. **Growth Drill Down(2017-11 → 2017-12): 매출 급락은 신규 유입 감소에 따른 거래량 축소**
 	
 	- 2017-11에서 2017-12 구간에서 매출 -26.9% 급락
 	- Orders(-24.36%), Active Buyers(-24.12%)가 유사한 수준으로 감소
@@ -364,7 +367,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 	- 매출은 기존 고객 유지보다 신규 고객 유입에 크게 의존
 	- ARPB, AOV는 안정적인 수준 유지
 	- 고객 가치 상승보다는 사용자 확장 중심의 성장 구조
-	- Top 10% 고객 매출 비중은 약 35~40% 수준으로 유지 -> 과도한 상위 고객 의존 구조 아님
+	- Top 10% 고객 매출 비중은 약 35~40% 수준으로 유지 → 과도한 상위 고객 의존 구조 아님
 
 4. **Operational Stability: 매출 변동은 운영 문제보다는 수요 및 고객 구조 변화에 의해 발생**
 	
@@ -372,7 +375,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 	- 시간 경과에 따라 일부 개선되는 흐름을 보임
 	- 매출 급락 구간에서도 운영 지표의 이상 증가 없음
 
-본 분석을 통해, 매출 변화의 핵심은 고객 유입 및 활성 기반임을 확인하였습니다.
+즉, 매출 성장은 고객 가치 확장이 아닌 유입 기반 거래량 증가에 의해 결정되는 구조입니다.
 
 
 관련 문서: [View Docs](./01_docs/Analysis_Insights.md)
@@ -397,7 +400,7 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 	- 이는 장기적으로 성장 지속성에 리스크로 작용 가능
 
 3. **매출 급락의 핵심 원인**
-	- 2017-11 -> 2017-12 매출 감소는 특정 카테고리/지역 문제가 아닌
+	- 2017-11 → 2017-12 매출 감소는 특정 카테고리/지역 문제가 아닌
 	  전반적인 수요 감소 및 신규 고객 감소에 의해 발생
 
 4. **운영 안정성과 매출의 낮은 연관성**
@@ -452,13 +455,21 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 
 ## Automation
 
+본 프로젝트는 Streamlit 기반 데이터 파이프라인 자동화 환경을 제공하며,  
+사용자는 별도의 환경 설정 없이 데이터 업로드만으로 전체 분석 프로세스를 실행할 수 있습니다.
 
-본 프로젝트는 Streamlit 기반 데이터 파이프라인 자동화 환경을 제공합니다.
+해당 자동화 환경은 분석 설계(MySQL 기반)에서 정의한 구조를  
+Python + SQLite 환경으로 경량화하여 실행할 수 있도록 구성되어 있습니다.
 
-사용자는 원본 csv 데이터를 업로드하는 것만으로
-데이터 적재부터 분석 결과 생성까지 전체 프로세스를 실행할 수 있습니다.
+### 실행 흐름
 
-주요 기능은 다음과 같습니다.
+1. CSV 파일 업로드  
+2. Raw 데이터 자동 적재  
+3. SQL 기반 파이프라인 실행 (Raw → Staging → Data Mart → Analytics)  
+4. KPI 및 분석 결과 자동 생성  
+5. Streamlit 대시보드 시각화  
+
+### 주요 기능
 
 - Raw 데이터 업로드 (Streamlit UI)
 - 프로젝트 내부 데이터 폴더 자동 생성 및 파일 저장
@@ -466,11 +477,9 @@ Streamlit 기반 데이터 파이프라인 자동화 애플리케이션입니다
 - KPI 및 분석 결과 자동 생성
 - 결과 데이터(Output) 자동 갱신
 
-실행 방법은 다음과 같습니다.
+### 실행 방법
 
-```bash
-streamlit run 05_app/app.py
-```
+ [Live Demo 바로가기](https://ldomeenik-olist-sql-data-service.streamlit.app/)
 
 
-관련 문서: [View Docs](./01_docs/Automation.md)
+관련 문서: [View Docs](./01_docs/Automation_Deployment.md)

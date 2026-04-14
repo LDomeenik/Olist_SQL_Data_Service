@@ -291,7 +291,7 @@ Indexes:
 	- 사전 DQ 상 파싱 실패는 0건이었으나, 안전을 위해 purchase_dt IS NOT NULL 조건 제약
 	- 정합성 위반 row는 삭제하지 않고 플래그로 관리 (데이터 손실 방지)
 	- 리드타임 파생 컬럼은 조건부 계산 적용 
-	  (시간 정합성이 깨진 케이스 발견 -> 컬럼 계산 시 NULL 처리)
+	  (시간 정합성이 깨진 케이스 발견 → 컬럼 계산 시 NULL 처리)
 	- order_estimated_delivery_dt 컬럼은 DATE로 표준화 (일자 중심 컬럼으로 판단됨)
 	- 조인 정합성에 이상이 발견되었으나,
 	  (orders에는 있는데 order_items에는 없는 주문(775건)/
@@ -303,7 +303,7 @@ Indexes:
 	- 주문 시간 기준 시간 순서 정합성 위반 row 존재: 166건
 	- 주문 상태와 배송 시간 간 정합성 위반 row 존재: 14건
 	- shipped/invoiced 상태이나 배송 인계 시간이 존재하지 않는 row 존재: 314건
-	  (비즈니스상 오류 여부를 단정하기 어려움 -> 추적용 플래그로 관리)
+	  (비즈니스상 오류 여부를 단정하기 어려움 → 추적용 플래그로 관리)
 	- orders에는 있는데 order_items에는 없는 주문: 775건
 	- orders에는 있는데 order_payments에는 없는 주문: 1건
 ```
@@ -311,16 +311,16 @@ Indexes:
 
 - **컬럼 명세 (1): 원본 컬럼 - 타입 표준화**
 
-| 컬럼명                             | 타입          | NULL | 설명          | 비고                       |
-| :------------------------------ | ----------- | ---- | ----------- | ------------------------ |
-| **order_id**                    | VARCHAR(50) | N    | 주문 고유 식별자   | PK                       |
-| **customer_id**                 | VARCHAR(50) | N    | 고객 식별자      | customers 조인 키           |
-| **order_status**                | VARCHAR(20) | N    | 주문 상태       | LOWER + TRIM 적용          |
-| **order_purchase_dt**           | DATETIME    | N    | 주문 구매 시각    | 분석 기준 시점                 |
-| **order_approved_dt**           | DATETIME    | Y    | 결제 승인 시각    | 승인 전 주문은 NULL            |
-| **order_delivered_carrier_dt**  | DATETIME    | Y    | 택배사 인계 시각   | 빈 문자열은 NULL 처리 후 파싱      |
-| **order_delivered_customer_dt** | DATETIME    | Y    | 고객 배송 완료 시각 | 배송 미완료 시 NULL            |
-| **order_estimated_delivery_dt** | DATE        | Y    | 예상 배송 일자    | 일자 단위 의미가 핵심 -> DATE로 처리 |
+| 컬럼명                             | 타입          | NULL | 설명          | 비고                      |
+| :------------------------------ | ----------- | ---- | ----------- | ----------------------- |
+| **order_id**                    | VARCHAR(50) | N    | 주문 고유 식별자   | PK                      |
+| **customer_id**                 | VARCHAR(50) | N    | 고객 식별자      | customers 조인 키          |
+| **order_status**                | VARCHAR(20) | N    | 주문 상태       | LOWER + TRIM 적용         |
+| **order_purchase_dt**           | DATETIME    | N    | 주문 구매 시각    | 분석 기준 시점                |
+| **order_approved_dt**           | DATETIME    | Y    | 결제 승인 시각    | 승인 전 주문은 NULL           |
+| **order_delivered_carrier_dt**  | DATETIME    | Y    | 택배사 인계 시각   | 빈 문자열은 NULL 처리 후 파싱     |
+| **order_delivered_customer_dt** | DATETIME    | Y    | 고객 배송 완료 시각 | 배송 미완료 시 NULL           |
+| **order_estimated_delivery_dt** | DATE        | Y    | 예상 배송 일자    | 일자 단위 의미가 핵심 → DATE로 처리 |
 
 - **컬럼 명세 (2): 시간 관련 파생 컬럼**
 
@@ -333,13 +333,13 @@ Indexes:
 
 - **컬럼 명세 (3): 배송/승인 관련 파생 지표**
 
-| 컬럼명                     | 타입         | NULL | 설명              | 파생 기준                                                                                                             |
-| :---------------------- | ---------- | ---- | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **approve_lead_days**   | INT        | Y    | 주문 -> 승인 소요일    | approved - purchase<br>(approved_dt >= purchase_dt일 때만)                                                           |
-| **delivery_lead_days**  | INT        | Y    | 주문 -> 배송 완료 소요일 | delivered_customer - purchase<br>(delivered_dt >= purchase_dt 일 때만)                                               |
-| **delivery_delay_days** | INT        | Y    | 배송 지연 일수        | deliverd_customer - estimated<br>(delivered_dt & estimated_dt가 존재하고 delivered_dt >= purchase_dt 일 때만 / 음수는 조기 배송) |
-| **is_delivered**        | TINYINT(1) | N    | 배송 완료 여부        | delivery_customer_dt <br>IS NOT NULL이면 1 else 0                                                                   |
-| **is_canceled**         | TINYINT(1) | N    | 주문 취소 여부        | status IN<br>('canceled', 'unavailable')이면 1 else 0                                                               |
+| 컬럼명                     | 타입         | NULL | 설명             | 파생 기준                                                                                                              |
+| :---------------------- | ---------- | ---- | -------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **approve_lead_days**   | INT        | Y    | 주문 → 승인 소요일    | approved - purchase<br>(approved_dt >= purchase_dt일 때만)                                                            |
+| **delivery_lead_days**  | INT        | Y    | 주문 → 배송 완료 소요일 | delivered_customer - purchase<br>(delivered_dt >= purchase_dt 일 때만)                                                |
+| **delivery_delay_days** | INT        | Y    | 배송 지연 일수       | delivered_customer - estimated<br>(delivered_dt & estimated_dt가 존재하고 delivered_dt >= purchase_dt 일 때만 / 음수는 조기 배송) |
+| **is_delivered**        | TINYINT(1) | N    | 배송 완료 여부       | delivery_customer_dt <br>IS NOT NULL이면 1 else 0                                                                    |
+| **is_canceled**         | TINYINT(1) | N    | 주문 취소 여부       | status IN<br>('canceled', 'unavailable')이면 1 else 0                                                                |
 
 - **컬럼 명세 (4): 플래그 지표**
 
@@ -378,7 +378,7 @@ Indexes:
 	  NULL 허용 
 	- customer_zip_code_prefix를 길이 5로 고정 (CHAR(5)) / 
 	  customer_state를 길이 2로 고정 (CHAR(2)) 
-	  -> 사전 DQ상 길이/타입 이상치는 없었으나, 조인 및 타입 일관성 확보를 위해 문자열로 고정
+	  → 사전 DQ상 길이/타입 이상치는 없었으나, 조인 및 타입 일관성 확보를 위해 문자열로 고정
 
 특이 사항(DQ 결과):
 	- customer_unique_id:
@@ -397,13 +397,13 @@ Indexes:
 
 - **컬럼 명세(1): 원본 컬럼 - 타입 표준화
 
-| 컬럼명                      | 타입           | NULL | 설명                | 비고                          |
-| :----------------------- | ------------ | ---- | ----------------- | --------------------------- |
-| **customer_id**              | VARCHAR(50)  | N    | 고객 / 주문 식별자       | PK                          |
-| **customer_unique_id**       | VARCHAR(50)  | N    | 고객 고유 식별자         |                             |
-| **customer_zip_code_prefix** | CHAR(5)      | Y    | 고객 우편 번호 기반 위치 정보 | 오직 숫자만 존재 -> 안전성을 위해 문자열 처리 |
-| **customer_city**            | VARCHAR(100) | Y    | 고객 도시 정보          | LOWER, TRIM 적용              |
-| **customer_state**           | CHAR(2)      | Y    | 고객 주 정보           | UPPER, TRIM 적용              |
+| 컬럼명                      | 타입           | NULL | 설명                | 비고                         |
+| :--------------------------- | ------------ | ---- | ----------------- | -------------------------- |
+| **customer_id**              | VARCHAR(50)  | N    | 고객 / 주문 식별자       | PK                         |
+| **customer_unique_id**       | VARCHAR(50)  | N    | 고객 고유 식별자         |                            |
+| **customer_zip_code_prefix** | CHAR(5)      | Y    | 고객 우편 번호 기반 위치 정보 | 오직 숫자만 존재 → 안전성을 위해 문자열 처리 |
+| **customer_city**            | VARCHAR(100) | Y    | 고객 도시 정보          | LOWER, TRIM 적용             |
+| **customer_state**           | CHAR(2)      | Y    | 고객 주 정보           | UPPER, TRIM 적용             |
 
 - **컬럼 명세(2): 파생 컬럼 - 도시-주 결합
 
@@ -508,7 +508,7 @@ Indexes:
 
 설계 목적:
 	- 상품 키(product_id) 기준 조인 안전성 확보
-	- 상품 분류명(product_category_name) 표준화(소문자/공백 제거, 공백->NULL)로
+	- 상품 분류명(product_category_name) 표준화(소문자/공백 제거, 공백 → NULL)로
 	  카테고리 분석 및 번역 테이블 조인 안전성 확보
 	- 길이, 높이, 너비 컬럼을 통해 파생 컬럼 생성(product_volume_cm3)
 	- 데이터 삭제 없이 정합성 위반을 플래그로 관리(is_category_blank/is_weight_zero)
@@ -644,7 +644,7 @@ Indexes:
 	  NULL 허용 
 	- seller_zip_code_prefix를 길이 5로 고정 (CHAR(5)) / 
 	  seller_state를 길이 2로 고정 (CHAR(2)) 
-	  -> 사전 DQ상 길이/타입 이상치는 없었으나, 조인 및 타입 일관성 확보를 위해 문자열로 고정
+	  → 사전 DQ상 길이/타입 이상치는 없었으나, 조인 및 타입 일관성 확보를 위해 문자열로 고정
 
 특이 사항(DQ 결과):
 	- seller_zip_code_prefix / seller_city / seller_state의 결측 및 공백 건수:
@@ -672,12 +672,12 @@ Indexes:
 
 -  **컬럼 명세(1): 원본 컬럼 - 타입 표준화
 
-| 컬럼명                        | 타입           | NULL | 설명                 | 비고                          |
-| :------------------------- | ------------ | ---- | ------------------ | --------------------------- |
-| **seller_id**              | VARCHAR(50)  | N    | 판매자 식별자            | PK                          |
-| **seller_zip_code_prefix** | CHAR(5)      | Y    | 판매자 우편 번호 기반 위치 정보 | 오직 숫자만 존재 -> 안전성을 위해 문자열 처리 |
-| **seller_city**            | VARCHAR(100) | Y    | 판매자 도시 정보          | LOWER, TRIM 적용              |
-| **seller_state**           | CHAR(2)      | Y    | 판매자 주 정보           | UPPER, TRIM 적용              |
+| 컬럼명                        | 타입           | NULL | 설명                 | 비고                         |
+| :------------------------- | ------------ | ---- | ------------------ | -------------------------- |
+| **seller_id**              | VARCHAR(50)  | N    | 판매자 식별자            | PK                         |
+| **seller_zip_code_prefix** | CHAR(5)      | Y    | 판매자 우편 번호 기반 위치 정보 | 오직 숫자만 존재 → 안전성을 위해 문자열 처리 |
+| **seller_city**            | VARCHAR(100) | Y    | 판매자 도시 정보          | LOWER, TRIM 적용             |
+| **seller_state**           | CHAR(2)      | Y    | 판매자 주 정보           | UPPER, TRIM 적용             |
 
 - **컬럼 명세(2): 파생 컬럼 - 도시-주 결합
 
@@ -833,13 +833,13 @@ Indexes:
 
 - **컬럼 명세(1): 원본 컬럼 - 표준화**
 
-| 컬럼명                    | 타입          | NULL | 설명         | 비고                                                    |
-| :--------------------- | ----------- | ---- | ---------- | ----------------------------------------------------- |
+| 컬럼명                        | 타입          | NULL | 설명         | 비고                                                    |
+| :------------------------- | ----------- | ---- | ---------- | ----------------------------------------------------- |
 | **review_id**              | VARCHAR(50) | N    | 리뷰 식별자     | 복합 PK 구성 요소                                           |
 | **order_id**               | VARCHAR(50) | N    | 주문 식별자     | 복합 PK 구성 요소 / 조인 키                                    |
 | **review_score**           | TINYINT     | N    | 리뷰 점수(1~5) | DQ 상 NULL, 이상치가 0건이고,<br>리뷰 점수 기반 이벤트이므로 NOT NULL을 보장 |
-| **review_comment_title**   | TEXT        | Y    | 리뷰 제목      | 공백이 다수 존재 -> NULL로 표준화                                |
-| **review_comment_message** | TEXT        | Y    | 리뷰 내용      | 공백이 다수 존재 -> NULL로 표준화                                |
+| **review_comment_title**   | TEXT        | Y    | 리뷰 제목      | 공백이 다수 존재 → NULL로 표준화                                 |
+| **review_comment_message** | TEXT        | Y    | 리뷰 내용      | 공백이 다수 존재 → NULL로 표준화                                 |
 | **review_creation_dt**     | DATETIME    | Y    | 리뷰 생성 시각   | review_creation_date에 대해 STR_TO_DATE 적용               |
 | **review_answer_dt**       | DATETIME    | Y    | 리뷰 답변 시각   | review_answer_timestamp에 대해 STR_TO_DATE 적용            |
 
@@ -1195,7 +1195,7 @@ Indexes:
 설계 목적:
 	- 제품 식별자(product_id) 기준 공용 제품 차원 제고 
 	- stg에서 수행한 표준화/라벨링 결과를 DM에 고정
-		  - product_category_name 공백 -> NULL 표준화 결과 유지
+		  - product_category_name 공백 → NULL 표준화 결과 유지
 		  - product_category_name_en 매핑 결과 유지
 	- 제품 스펙(길이/무게/치수 등) 원본 보존 + 부피 제공
 	- 플래그 컬럼을 통한 유연한 필터링 제공
@@ -1310,7 +1310,7 @@ Indexes:
 	- PK와 FK는 NOT NULL을 지정
 	- FK 중 zip_code_prefix는 원본 데이터 상 
 	  결측이 발생할 수 있으므로(데이터 커버리지의 한계) NULL을 허용
-	- 그 외 컬럼은 데이터 원본 보존과 확작성을 고려하여 NULL을 허용
+	- 그 외 컬럼은 데이터 원본 보존과 확장성을 고려하여 NULL을 허용
 ```
 
 
@@ -1371,8 +1371,8 @@ Indexes:
 
 - **컬럼 명세**
 
-| 컬럼명                         | 타입          | NULL | Key | 설명                   | 생성 규칙/로직                                   |
-| :-------------------------- | ----------- | ---- | --- | -------------------- | ------------------------------------------ |
+| 컬럼명                             | 타입          | NULL | Key | 설명                   | 생성 규칙/로직                                   |
+| :------------------------------ | ----------- | ---- | --- | -------------------- | ------------------------------------------ |
 | **order_id**                    | VARCHAR(50) | N    | PK  | 주문 식별자               | stg_orders 그대로 반영                          |
 | **customer_id**                 | VARCHAR(50) | N    | FK  | 고객 식별자               | stg_orders 그대로 반영                          |
 | **order_purchase_date_key**     | INT         | N    | FK  | 구매일자 키<br>(YYYYMMDD) | DATE_FORMAT(order_purchase_date, '%Y%m%d') |
@@ -1383,8 +1383,8 @@ Indexes:
 | **order_delivered_carrier_dt**  | DATETIME    | Y    |     | 배송사 인계 시각            | stg_orders 그대로 반영                          |
 | **order_delivered_customer_dt** | DATETIME    | Y    |     | 고객 배송 완료 시각          | stg_orders 그대로 반영                          |
 | **order_estimated_delivery_dt** | DATE        | Y    |     | 예상 배송일               | stg_orders 그대로 반영                          |
-| **approve_lead_days**           | INT         | Y    |     | 구매 -> 승인 소요일         | stg_orders 그대로 반영                          |
-| **delivery_lead_days**          | INT         | Y    |     | 구매 -> 배송완료 소요일       | stg_orders 그대로 반영                          |
+| **approve_lead_days**           | INT         | Y    |     | 구매 → 승인 소요일          | stg_orders 그대로 반영                          |
+| **delivery_lead_days**          | INT         | Y    |     | 구매 → 배송완료 소요일        | stg_orders 그대로 반영                          |
 | **delivery_delay_days**         | INT         | Y    |     | 예상일 대비 실제 배송 차이 (일)  | stg_orders 그대로 반영                          |
 | **is_delivered**                | TINYINT(1)  | N    |     | 배송 완료 여부             | stg_orders 그대로 반영                          |
 | **is_canceled**                 | TINYINT(1)  | N    |     | 취소/미배송 여부            | stg_orders 그대로 반영                          |

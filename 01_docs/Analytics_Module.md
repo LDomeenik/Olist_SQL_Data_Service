@@ -289,7 +289,7 @@ Primary Key (논리): (cohort_year_month, month_n)
 설계 목적:
 	- 코호트별 KPI를 월차 기준으로 제공
 	- 리텐션 히트맵/커브, 코호트 매출 누적, 코호트별 주문/객단가 추적을 용이하게 함
-	- Full martix로 구매가 없는 달도 0으로 명시
+	- Full matrix로 구매가 없는 달도 0으로 명시
 
 생성 규칙:
 	- cohort_year_month 목록은 고객 첫 구매월 기준으로 생성
