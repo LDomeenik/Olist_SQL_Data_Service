@@ -60,6 +60,51 @@ def _safe_pct_change(before, after) -> float | None:
     return ((after - before) / before) * 100
 
 
+def _to_numeric_series(df: pd.DataFrame, col: str) -> pd.Series:
+    """
+    특정 컬럼을 안전하게 숫자형으로 변환
+    """
+    if col not in df.columns:
+        return pd.Series(dtype="float64")
+    return pd.to_numeric(df[col], errors="coerce")
+
+
+def _build_top_drop_df(
+    source_df: pd.DataFrame,
+    growth_month: str,
+    drop_month: str,
+) -> pd.DataFrame:
+    """
+    비교 월 기준 감소 기여도 상위 10개를 계산
+    """
+    pivot_df = (
+        source_df.pivot_table(
+            index="dimension_value",
+            columns="year_month",
+            values="gross_revenue",
+            aggfunc="sum",
+        )
+        .fillna(0)
+        .reset_index()
+    )
+
+    if growth_month not in pivot_df.columns or drop_month not in pivot_df.columns:
+        return pd.DataFrame()
+
+    pivot_df[growth_month] = pd.to_numeric(pivot_df[growth_month], errors="coerce").fillna(0)
+    pivot_df[drop_month] = pd.to_numeric(pivot_df[drop_month], errors="coerce").fillna(0)
+
+    pivot_df["rev_diff"] = pivot_df[drop_month] - pivot_df[growth_month]
+
+    top_drop_df = (
+        pivot_df.sort_values("rev_diff", ascending=True)
+        .head(10)
+        .copy()
+    )
+
+    return top_drop_df
+
+
 def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
     """
     Growth Drill Down 페이지 전체를 렌더링하는 함수
@@ -69,7 +114,7 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
 
     apply_kpi_metric_style()
 
-    if drill_df.empty:
+    if drill_df is None or drill_df.empty:
         st.warning("growth_drill_down.csv 파일이 없습니다.")
         return
 
@@ -87,18 +132,29 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
         st.dataframe(df.head(30), use_container_width=True)
         return
 
+    # -------------------------
     # 비교 구간
+    # -------------------------
     st.markdown("#### 비교 구간")
+    st.caption("가장 최근 두 개 월을 기준으로 매출 변화 원인을 비교합니다.")
 
-    col1, col2, col3 = st.columns([1, 0.3, 1])
+    col1, col2, col3 = st.columns([1, 0.25, 1])
+
     with col1:
-        st.metric("기준 월", growth_month)
-    with col2:
-        st.markdown("### →")
-    with col3:
-        st.metric("비교 월", drop_month)
+        st.metric("Base Month", growth_month)
 
+    with col2:
+        st.markdown(
+            "<div style='text-align:center; font-size:1.6rem; padding-top:1.4rem;'>→</div>",
+            unsafe_allow_html=True,
+        )
+
+    with col3:
+        st.metric("Compare Month", drop_month)
+
+    # -------------------------
     # KPI 비교
+    # -------------------------
     buyer_df = df[df["section_type"] == "buyer_type"].copy()
 
     if not buyer_df.empty:
@@ -109,6 +165,16 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
                 buyers=("buyers", "sum"),
                 order_cnt=("order_cnt", "sum"),
             )
+        )
+
+        monthly_summary["gross_revenue"] = pd.to_numeric(
+            monthly_summary["gross_revenue"], errors="coerce"
+        )
+        monthly_summary["buyers"] = pd.to_numeric(
+            monthly_summary["buyers"], errors="coerce"
+        )
+        monthly_summary["order_cnt"] = pd.to_numeric(
+            monthly_summary["order_cnt"], errors="coerce"
         )
 
         monthly_summary["aov"] = (
@@ -133,7 +199,7 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
             with k1:
                 st.metric(
                     "Revenue",
-                    f"{_format_number(base_row['gross_revenue'],'currency')} → {_format_number(comp_row['gross_revenue'],'currency')}",
+                    f"{_format_number(base_row['gross_revenue'], 'currency')} → {_format_number(comp_row['gross_revenue'], 'currency')}",
                     delta=f"{rev_pct:.2f}%" if rev_pct is not None else None,
                 )
             with k2:
@@ -151,17 +217,23 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
             with k4:
                 st.metric(
                     "AOV",
-                    f"{_format_number(base_row['aov'],'currency')} → {_format_number(comp_row['aov'],'currency')}",
+                    f"{_format_number(base_row['aov'], 'currency')} → {_format_number(comp_row['aov'], 'currency')}",
                     delta=f"{aov_pct:.2f}%" if aov_pct is not None else None,
                 )
+
+            st.caption(
+                "비교 구간에서 Revenue, Orders, Active Buyers가 함께 감소했으며, "
+                "AOV 변화는 상대적으로 제한적입니다.\n\n"
+                "즉, 매출 하락은 고객 가치 하락보다 거래량 축소의 영향이 더 큽니다."
+            )
 
             render_insight_box(
                 title="Key Insight",
                 message=(
-                    f"{growth_month} → {drop_month} 구간의 매출 급락은 특정 카테고리나 특정 지역의 붕괴가 아닌,\n\n "
-                    "신규 구매자 유입 감소에 따른 전반적 거래량 축소로 해석됩니다.\n\n "
-                    "카테고리와 지역 모두 상위 구조는 유지된 상태에서 동반 하락했으며,\n\n "
-                    "신규 매출 감소가 전체 매출 감소를 사실상 대부분 설명합니다.\n\n "
+                    f"{growth_month} → {drop_month} 구간의 매출 급락은 특정 카테고리나 특정 지역의 붕괴가 아닌,\n\n"
+                    "신규 구매자 유입 감소에 따른 전반적 거래량 축소로 해석됩니다.\n\n"
+                    "카테고리와 지역 모두 상위 구조는 유지된 상태에서 동반 하락했으며,\n\n"
+                    "신규 매출 감소가 전체 매출 감소를 사실상 대부분 설명합니다.\n\n"
                     "즉, 이 하락은 상품 믹스 변화가 아닌 platform-wide demand 감소의 신호입니다."
                 ),
                 level="info",
@@ -169,7 +241,9 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
 
     st.divider()
 
+    # -------------------------
     # 신규 vs 재구매
+    # -------------------------
     st.markdown("#### New vs Repeat Revenue Structure")
     st.caption("신규 고객과 재구매 고객이 매출 감소에 얼마나 기여했는지 비교합니다.")
 
@@ -183,89 +257,154 @@ def render_growth_drill_down(drill_df: pd.DataFrame) -> None:
             .agg(gross_revenue=("gross_revenue", "sum"))
         )
 
-        chart_source = chart_source.replace([np.inf, -np.inf], None).fillna(0)
+        chart_source["gross_revenue"] = pd.to_numeric(
+            chart_source["gross_revenue"], errors="coerce"
+        ).fillna(0)
 
         try:
-            st.altair_chart(
-                alt.Chart(chart_source).mark_bar().encode(
-                    x="year_month:N",
-                    xOffset="dimension_value:N",
-                    y="gross_revenue:Q",
-                    color="dimension_value:N",
-                ),
-                use_container_width=True,
+            chart = (
+                alt.Chart(chart_source)
+                .mark_bar(size=42)
+                .encode(
+                    x=alt.X("year_month:N", title="Year Month"),
+                    xOffset=alt.XOffset("dimension_value:N"),
+                    y=alt.Y("gross_revenue:Q", title="Gross Revenue"),
+                    color=alt.Color(
+                        "dimension_value:N",
+                        title="Buyer Type",
+                        scale=alt.Scale(
+                            domain=["new", "repeat"],
+                            range=["#4C78A8", "#F58518"],
+                        ),
+                    ),
+                    tooltip=[
+                        alt.Tooltip("year_month:N", title="Month"),
+                        alt.Tooltip("dimension_value:N", title="Type"),
+                        alt.Tooltip("gross_revenue:Q", title="Revenue", format=",.0f"),
+                    ],
+                )
+                .properties(height=320)
             )
+            st.altair_chart(chart, use_container_width=True)
         except Exception:
             st.warning("차트를 렌더링할 수 없습니다.")
 
     st.divider()
 
-    # 카테고리
+    # -------------------------
+    # 카테고리 감소 기여도
+    # -------------------------
     st.markdown("#### Category Contribution Change")
-    st.caption("카테고리별 매출 변화량을 통해 특정 카테고리 영향 여부를 확인합니다.")
+    st.caption("비교 구간에서 매출 감소에 가장 크게 기여한 카테고리 상위 10개를 확인합니다.")
+
     category_df = df[df["section_type"] == "category"].copy()
 
     if not category_df.empty:
         category_compare = category_df[
             category_df["year_month"].isin([growth_month, drop_month])
-        ]
+        ].copy()
 
-        category_pivot = (
-            category_compare.pivot_table(
-                index="dimension_value",
-                columns="year_month",
-                values="gross_revenue",
-                aggfunc="sum",
-            )
-            .fillna(0)
-            .reset_index()
+        top_drop_category = _build_top_drop_df(
+            source_df=category_compare,
+            growth_month=growth_month,
+            drop_month=drop_month,
         )
 
-        if growth_month in category_pivot.columns and drop_month in category_pivot.columns:
-            category_pivot["rev_diff"] = category_pivot[drop_month] - category_pivot[growth_month]
-
-            chart_df = category_pivot.set_index("dimension_value")["rev_diff"]
-            chart_df = chart_df.replace([np.inf, -np.inf], 0).fillna(0)
+        if not top_drop_category.empty:
+            top_row = top_drop_category.iloc[0]
+            st.info(
+                f"가장 큰 카테고리 감소 요인은 **{top_row['dimension_value']}**이며, "
+                f"비교 구간 매출 차이는 **{top_row['rev_diff']:,.0f}** 입니다."
+            )
 
             try:
-                st.bar_chart(chart_df, use_container_width=True)
+                chart = (
+                    alt.Chart(top_drop_category)
+                    .mark_bar()
+                    .encode(
+                        x=alt.X("rev_diff:Q", title="Revenue Difference"),
+                        y=alt.Y(
+                            "dimension_value:N",
+                            sort=alt.SortField(field="rev_diff", order="ascending"),
+                            title="Category",
+                        ),
+                        color=alt.condition(
+                            alt.datum.rev_diff < 0,
+                            alt.value("#E45756"),
+                            alt.value("#72B7B2"),
+                        ),
+                        tooltip=[
+                            alt.Tooltip("dimension_value:N", title="Category"),
+                            alt.Tooltip("rev_diff:Q", title="Diff", format=",.0f"),
+                            alt.Tooltip(f"{growth_month}:Q", title=f"{growth_month}", format=",.0f"),
+                            alt.Tooltip(f"{drop_month}:Q", title=f"{drop_month}", format=",.0f"),
+                        ],
+                    )
+                    .properties(height=360)
+                )
+                st.altair_chart(chart, use_container_width=True)
             except Exception:
                 st.warning("차트를 렌더링할 수 없습니다.")
 
     st.divider()
 
-    # 지역
+    # -------------------------
+    # 지역 감소 기여도
+    # -------------------------
     st.markdown("#### Regional Contribution Change")
-    st.caption("지역별 매출 변화량을 통해 특정 지역의 수요 감소 여부를 확인합니다.")
+    st.caption("비교 구간에서 매출 감소에 가장 크게 기여한 지역 상위 10개를 확인합니다.")
+
     city_df = df[df["section_type"] == "city_state"].copy()
 
     if not city_df.empty:
         city_compare = city_df[
             city_df["year_month"].isin([growth_month, drop_month])
-        ]
+        ].copy()
 
-        city_pivot = (
-            city_compare.pivot_table(
-                index="dimension_value",
-                columns="year_month",
-                values="gross_revenue",
-                aggfunc="sum",
-            )
-            .fillna(0)
-            .reset_index()
+        top_drop_city = _build_top_drop_df(
+            source_df=city_compare,
+            growth_month=growth_month,
+            drop_month=drop_month,
         )
 
-        if growth_month in city_pivot.columns and drop_month in city_pivot.columns:
-            city_pivot["rev_diff"] = city_pivot[drop_month] - city_pivot[growth_month]
-
-            chart_df = city_pivot.set_index("dimension_value")["rev_diff"]
-            chart_df = chart_df.replace([np.inf, -np.inf], 0).fillna(0)
+        if not top_drop_city.empty:
+            top_row = top_drop_city.iloc[0]
+            st.info(
+                f"가장 큰 지역 감소 요인은 **{top_row['dimension_value']}**이며, "
+                f"비교 구간 매출 차이는 **{top_row['rev_diff']:,.0f}** 입니다."
+            )
 
             try:
-                st.bar_chart(chart_df, use_container_width=True)
+                chart = (
+                    alt.Chart(top_drop_city)
+                    .mark_bar()
+                    .encode(
+                        x=alt.X("rev_diff:Q", title="Revenue Difference"),
+                        y=alt.Y(
+                            "dimension_value:N",
+                            sort=alt.SortField(field="rev_diff", order="ascending"),
+                            title="Region",
+                        ),
+                        color=alt.condition(
+                            alt.datum.rev_diff < 0,
+                            alt.value("#E45756"),
+                            alt.value("#72B7B2"),
+                        ),
+                        tooltip=[
+                            alt.Tooltip("dimension_value:N", title="Region"),
+                            alt.Tooltip("rev_diff:Q", title="Diff", format=",.0f"),
+                            alt.Tooltip(f"{growth_month}:Q", title=f"{growth_month}", format=",.0f"),
+                            alt.Tooltip(f"{drop_month}:Q", title=f"{drop_month}", format=",.0f"),
+                        ],
+                    )
+                    .properties(height=360)
+                )
+                st.altair_chart(chart, use_container_width=True)
             except Exception:
                 st.warning("차트를 렌더링할 수 없습니다.")
 
+    # -------------------------
     # 원본 데이터
+    # -------------------------
     with st.expander("원본 데이터 보기"):
         st.dataframe(df.head(100), use_container_width=True)
